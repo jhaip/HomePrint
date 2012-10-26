@@ -1257,7 +1257,7 @@ class BlackcatFrame(wx.Frame):
         wx.Frame.__init__(self, None, -1, "Blackcat - STL CAD file slicer", size=(800, 600))
         self.slice_parameter = {"height":"1.0", "pitch":"1.0", "speed":"10", "fast":"20", "direction":"+Z", "scale":"1"}
         self.create_menubar()
-        self.create_toolbar()
+        #self.create_toolbar()
         self.cadmodel = CadModel()
         self.statusbar = self.CreateStatusBar()
         self.create_panel()
