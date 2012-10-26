@@ -248,7 +248,7 @@ class Layer:
     def __init__(self, z, pitch):
         self.lines = []
         self.z = z
-        self.pitch = 10000000#pitch
+        self.pitch = pitch
 
     def empty(self):
         return len(self.lines) == 0
@@ -1007,6 +1007,7 @@ class ModelCanvas(glcanvas.GLCanvas):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         self.show_model()
         self.show_path()
+        self.show_axis()
         self.SwapBuffers()
     
     def show_path(self):
@@ -1032,6 +1033,22 @@ class ModelCanvas(glcanvas.GLCanvas):
         glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, -self.cadmodel.zcenter)
         
         glCallList(self.cadmodel.model_list_id)
+
+    def show_axis(self):
+
+        glLineWidth(3.)
+        glBegin(GL_LINES)
+        glColor(1,0,0)
+        glVertex3f(0.,0.,0.)
+        glVertex3f(3.,0.,0.)
+        glColor(0,1,0)
+        glVertex3f(0.,0.,0.)
+        glVertex3f(0.,3.,0.)
+        glColor(0,0,1)
+        glVertex3f(0.,0.,0.)
+        glVertex3f(0.,0.,3.)
+        glEnd()
+        glLineWidth(2.)
 
     def OnMouseDown(self, evt):
         self.CaptureMouse()
@@ -1509,8 +1526,9 @@ class SlicePanel(wx.Panel):
         self.create_controls()
 
     def create_controls(self):
-        labels = [("Layer height", "1.0", "height"), ("Pitch", "1.0", "pitch"), \
-                  ("Scanning speed", "20", "speed"), ("Fast speed", "20", "fast")]
+        #labels = [("Layer height", "1.0", "height"), ("Pitch", "1.0", "pitch"), \
+        #          ("Scanning speed", "20", "speed"), ("Fast speed", "20", "fast")]
+        labels = [("Layer height", "1.0", "height")]
         
         outsizer = wx.BoxSizer(wx.VERTICAL)
         sizer = wx.BoxSizer(wx.VERTICAL)
