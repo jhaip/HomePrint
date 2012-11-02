@@ -396,62 +396,6 @@ class Layer:
                 ylist.append(line.p2.y)
         self.miny = min(ylist)                
         self.maxy = max(ylist)
-    
-    def create_scanlines(self):
-        self.scanlines = []
-        y = self.miny + self.pitch
-        lasty = self.miny
-        while y < self.maxy:
-            code, scanline = self.create_one_scanline(y)
-            
-            if code == SCANLINE:
-                self.scanlines.append(scanline)
-                lasty = y
-                y += self.pitch
-            elif code  == REDO:
-                y = y - self.pitch * 0.01                
-                if y < lasty:
-                    break
-                
-                print 'recreate scan line'
-            else:
-                lasty = y
-                y += self.pitch
-    
-    def create_one_scanline(self, y):
-        s = set()
-        for loop in self.loops:
-            for line in loop:
-                code, x = self.intersect(y, line, loop)
-                if code == REDO:
-                    return (REDO, None)
-                elif code == INTERSECTED:
-                    s.add('%.6f' % x)
-        
-        xlist = map(lambda x: float(x), s)
-        xlist.sort()                    
-
-        n = len(xlist)
-        ok = (n % 2 == 0)
-        if not ok:
-            print 'error: no of points in a scanline is not even', n
-            assert 0
-        
-        # Create lines
-        lines = []
-        for i in range(0, n, 2):
-            x1 = xlist[i]
-            x2 = xlist[i + 1]
-            p1 = Point(x1, y, self.z)
-            p2 = Point(x2, y, self.z)
-            line = Line(p1, p2)
-            lines.append(line)
-        
-        if len(lines) > 0:
-            code = SCANLINE
-        else:
-            code = NOT_SCANLINE
-        return (code, lines)
 
     def intersect(self, y, line, loop):
         y1 = line.p1.y
@@ -531,29 +475,8 @@ class Layer:
                 else:
                     return aline
         else:
-            return False                
+            return False  
 
-    def create_chunks(self):
-        self.chunks = []
-        scanlines = self.scanlines
-        while len(scanlines) != 0:
-            chunk = []
-            scanline = scanlines[0]
-            line = scanline.pop(0)
-            chunk.append(line)
-            
-            for scanline in scanlines[1:]:
-                nline = self.get_overlap_line(line, scanline)
-                if nline:
-                    chunk.append(nline)
-                    scanline.remove(nline)
-                    line = nline 
-                else:
-                    break
-            
-            self.chunks.append(chunk)
-            scanlines = filter(lambda x: len(x) > 0, scanlines)
-    
     def write(self, f):
         #print >> f, '<layer id="', self.id, '">'
         self.writeloop(f)
@@ -570,13 +493,12 @@ class Layer:
             for line in loop:
                 if lastline != None:
                     if line.p1 != lastline.p2:
-                        print >> f, 'LIN {X '+line.p1.x+', Y '+line.p1.y+', Z '+line.p1.z+'} c_vel'
-                    print >> f, 'LIN {X '+line.p2.x+', Y '+line.p2.y+', Z '+line.p2.z+'} c_vel'
+                        print >> f, 'LIN {X '+str(int(line.p1.x*1000))+', Y '+str(int(line.p1.y*1000))+', Z '+str(int(line.p1.z*1000))+'} c_vel'
+                    print >> f, 'LIN {X '+str(int(line.p2.x*1000))+', Y '+str(int(line.p2.y*1000))+', Z '+str(int(line.p2.z*1000))+'} c_vel'
                 else:
-                    print >> f, 'LIN {X '+line.p1.x+', Y '+line.p1.y+', Z '+line.p1.z+'} c_vel'
-                    print >> f, 'LIN {X '+line.p2.x+', Y '+line.p2.y+', Z '+line.p2.z+'} c_vel'
+                    print >> f, 'LIN {X '+str(int(line.p1.x*1000))+', Y '+str(int(line.p1.y*1000))+', Z '+str(int(line.p1.z*1000))+'} c_vel'
+                    print >> f, 'LIN {X '+str(int(line.p2.x*1000))+', Y '+str(int(line.p2.y*1000))+', Z '+str(int(line.p2.z*1000))+'} c_vel'
                 #writeline(line, f)
-            #print >> f, '</loop>'                
             count += 1
         #print >> f, '</loops>'
 
@@ -813,7 +735,7 @@ class CadModel:
         print >> f, '$VEL_AXIS[6]=20'
 
         print >> f, ''
-        print >> f, '$vel.cp= 1.3'
+        print >> f, '$vel.cp= '+str(self.speed)
         print >> f, '$apo.cvel= 95'
         print >> f, ''
 
@@ -824,10 +746,10 @@ class CadModel:
 
     def slice(self, para):
         self.sliced = False
-        self.height = float(para["height"])
+        self.height = float(para["height"])/1000.0
         self.pitch = float(para["pitch"])
         self.speed = float(para["speed"])
-        self.fast = float(para["fast"])
+        #self.fast = float(para["fast"])
         self.direction = para["direction"]
         self.scale = float(para["scale"])
         
@@ -1265,7 +1187,10 @@ class ControlPanel(wx.Panel):
         box = wx.StaticBox(self, -1, "Slice Info")
         sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
 
-        items = [("Layer hight", "height"), ("Pitch", "pitch"), ("Speed", "speed"), 
+        #items = [("Layer hight", "height"), ("Pitch", "pitch"), ("Speed", "speed"), 
+        #         ("Direction", "direction"), ("Num Layers", "nolayer"),
+        #         ("Current Layer", "currlayer")]
+        items = [("Layer hight", "height"), ("Speed", "speed"), 
                  ("Direction", "direction"), ("Num Layers", "nolayer"),
                  ("Current Layer", "currlayer")]
         flex = wx.FlexGridSizer(rows=len(items), cols=2, hgap=2, vgap=2)
@@ -1297,7 +1222,8 @@ class ControlPanel(wx.Panel):
 class BlackcatFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, "HomePrint - MIT Mediated Matter", size=(800, 600))
-        self.slice_parameter = {"height":"1.0", "pitch":"1.0", "speed":"10", "fast":"20", "direction":"+Z", "scale":"1"}
+        #self.slice_parameter = {"height":"1.0", "pitch":"1.0", "speed":"10", "fast":"20", "direction":"+Z", "scale":"1"}
+        self.slice_parameter = {"height":"1.0", "speed":"0.3", "pitch": "1.0", "direction":"+Z", "scale":"1", "global_start_x":"0", "global_start_y":"0", "global_start_z":"0"}
         self.create_menubar()
         #self.create_toolbar()
         self.cadmodel = CadModel()
@@ -1531,12 +1457,12 @@ class CharValidator(wx.PyValidator):
                 text_ctrl.Refresh()
                 return False
             
-            if value <= 0:
-                wx.MessageBox("value <= 0!", "Error")
-                text_ctrl.SetBackgroundColour('pink')
-                text_ctrl.SetFocus()
-                text_ctrl.Refresh()
-                return False
+            #if value <= 0:
+            #    wx.MessageBox("value <= 0!", "Error")
+            #    text_ctrl.SetBackgroundColour('pink')
+            #    text_ctrl.SetFocus()
+            #    text_ctrl.Refresh()
+            #    return False
 
         text_ctrl.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
         text_ctrl.Refresh()
@@ -1570,7 +1496,8 @@ class SlicePanel(wx.Panel):
     def create_controls(self):
         #labels = [("Layer height", "1.0", "height"), ("Pitch", "1.0", "pitch"), \
         #          ("Scanning speed", "20", "speed"), ("Fast speed", "20", "fast")]
-        labels = [("Layer height", "1.0", "height")]
+        labels = [("Layer height (mm)", "1.0", "height"),("Speed (m/s)","0.3","speed"), \
+                    ("Starting X (mm)","0.0","global_start_x"),("Starting Y (mm)","0.0","global_start_y"),("Starting Z (mm)","0.0","global_start_z")]
         
         outsizer = wx.BoxSizer(wx.VERTICAL)
         sizer = wx.BoxSizer(wx.VERTICAL)
