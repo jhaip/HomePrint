@@ -555,21 +555,30 @@ class Layer:
             scanlines = filter(lambda x: len(x) > 0, scanlines)
     
     def write(self, f):
-        print >> f, '<layer id="', self.id, '">'
+        #print >> f, '<layer id="', self.id, '">'
         self.writeloop(f)
-        self.writechunks(f)
-        print >> f, '</layer>'
+        #self.writechunks(f)
+        #print >> f, '</layer>'
+        print >> f, 'WAIT 30.0'
     
     def writeloop(self, f):
-        print >> f, '<loops num="', len(self.loops), '">'
+        #print >> f, '<loops num="', len(self.loops), '">'
         count = 1
         for loop in self.loops:
-            print >> f, '<loop id="', count, '">'
+            #print >> f, '<loop id="', count, '">'
+            lastline = None
             for line in loop:
-                writeline(line, f)
-            print >> f, '</loop>'                
+                if lastline != None:
+                    if line.p1 != lastline.p2:
+                        print >> f, 'LIN {X '+line.p1.x+', Y '+line.p1.y+', Z '+line.p1.z+'} c_vel'
+                    print >> f, 'LIN {X '+line.p2.x+', Y '+line.p2.y+', Z '+line.p2.z+'} c_vel'
+                else:
+                    print >> f, 'LIN {X '+line.p1.x+', Y '+line.p1.y+', Z '+line.p1.z+'} c_vel'
+                    print >> f, 'LIN {X '+line.p2.x+', Y '+line.p2.y+', Z '+line.p2.z+'} c_vel'
+                #writeline(line, f)
+            #print >> f, '</loop>'                
             count += 1
-        print >> f, '</loops>'
+        #print >> f, '</loops>'
 
     def writechunks(self, f):
         print >> f, '<chunks num="', len(self.chunks), '">'
@@ -583,14 +592,14 @@ class Layer:
         print >> f, '</chunks>'
 
 def writeline(line, f):
-    print >> f, '<line>'
+    #print >> f, '<line>'
     for p in (line.p1, line.p2):
         print >> f, '<point>',
         print >> f, '<x>', p.x, '</x>',
         print >> f, '<y>', p.y, '</y>',
         print >> f, '<z>', p.z, '</z>',
         print >> f, '</point>'
-    print >> f, '</line>'        
+    #print >> f, '</line>'        
 
 class CadModel:
     def __init__(self):
@@ -767,26 +776,51 @@ class CadModel:
             return True
         else:
             return False
-    
+
     def save(self, filename):
         f = open(filename, 'w')
-        print >> f, '<slice>'
-        print >> f, '    <dimension>'
-        print >> f, '        <x>', self.xsize, '</x>'
-        print >> f, '        <y>', self.ysize, '</y>'
-        print >> f, '        <z>', self.zsize, '</z>'
-        print >> f, '    </dimension>'
-        print >> f, '    <para>'
-        print >> f, '         <layerheight>', self.height, '</layerheight>'
-        print >> f, '         <layerpitch>', self.pitch, '</layerpitch>'
-        print >> f, '         <speed>', self.speed, '</speed>'
-        print >> f, '    </para>'
-        print >> f, '<layers num="', len(self.layers), '">'
+
+        print >> f, '&ACCESS RVP'
+        print >> f, '&REL 25'
+        print >> f, 'DEF '+filename+'()'
+        print >> f, ''
+        print >> f, ';FOLD INI'
+        print >> f, '  ;FOLD BASISTECH INI'
+        print >> f, '    GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )'
+        print >> f, '    INTERRUPT ON 3'
+        print >> f, '    BAS (#INITMOV,0 )'
+        print >> f, '  ;ENDFOLD (BASISTECH INI)'
+        print >> f, '  ;FOLD USER INI'
+        print >> f, '    ;Make your modifications here'
+        print >> f, ''
+        print >> f, '  ;ENDFOLD (USER INI)'
+        print >> f, ';ENDFOLD (INI)'
+        print >> f, ''
+        print >> f, ';FOLD PTP HOME  Vel= 100 % DEFAULT;%{PE}%R 5.4.37,%MKUKATPBASIS,%CMOVE,%VPTP,%P 1:PTP, 2:HOME, 3:, 5:100, 7:DEFAULT'
+        print >> f, '$BWDSTART=FALSE'
+        print >> f, 'PDAT_ACT=PDEFAULT'
+        print >> f, 'FDAT_ACT=FHOME'
+        print >> f, 'BAS(#PTP_PARAMS,100)'
+        print >> f, '$H_POS=XHOME'
+        print >> f, 'PTP XHOME'
+        print >> f, ';ENDFOLD'
+        print >> f, ''
+        print >> f, '$VEL_AXIS[1]=20'
+        print >> f, '$VEL_AXIS[2]=20'
+        print >> f, '$VEL_AXIS[3]=20'
+        print >> f, '$VEL_AXIS[4]=20'
+        print >> f, '$VEL_AXIS[5]=20'
+        print >> f, '$VEL_AXIS[6]=20'
+
+        print >> f, ''
+        print >> f, '$vel.cp= 1.3'
+        print >> f, '$apo.cvel= 95'
+        print >> f, ''
 
         for layer in self.layers:
             layer.write(f)
-        print >> f, '</layers>'
-        print >> f, '</slice>'
+
+        print >> f, 'END'
 
     def slice(self, para):
         self.sliced = False
@@ -802,6 +836,7 @@ class CadModel:
         self.calc_dimension()
         self.create_layers()
         self.set_new_dimension()
+        self.change_direction('+Z')
         if len(self.layers) > 0:
             self.sliced = True
             self.curr_layer = 0
@@ -847,7 +882,8 @@ class CadModel:
         no = (self.maxz - self.minz) / self.height
         no = int(no)
         self.queue.put(no)
-        while z > self.minz and z <= self.maxz:
+        while z >= self.minz and z <= self.maxz:
+            print 'HIT'
             code, layer = self.create_one_layer(z)
             
             if code == LAYER:
@@ -860,6 +896,7 @@ class CadModel:
                 self.queue.put(count)
                 print 'layer', count, '/', no
             elif code == ERROR:
+                print 'layer error'
                 break
             elif code == REDO:
                 z = z - self.height * 0.01
@@ -869,6 +906,7 @@ class CadModel:
             elif code == NOT_LAYER:
                 lastz = z
                 z += self.height
+                print 'not layer'
            
         self.queue.put("done")                
         print 'no of layers:', len(self.layers)                
@@ -879,12 +917,14 @@ class CadModel:
         layer = Layer(z, self.pitch)
         lines = []
         for facet in self.facets:
+            print 'facet check'
             code, line = facet.intersect(z) 
             if code == REDO:
                 return (REDO, None)
             elif code == INTERSECTED:
                 lines.append(line)
         
+        print 'cleanup stuff'
         if len(lines) != 0:
             ok = layer.set_lines(lines)
             if ok:
@@ -1145,6 +1185,8 @@ class ModelCanvas(glcanvas.GLCanvas):
         glEnable(GL_VERTEX_PROGRAM_POINT_SIZE)
         glPointSize(4.0)
 
+        glShadeModel(GL_SMOOTH)   
+
 class DimensionPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
@@ -1254,7 +1296,7 @@ class ControlPanel(wx.Panel):
 
 class BlackcatFrame(wx.Frame):
     def __init__(self):
-        wx.Frame.__init__(self, None, -1, "Blackcat - STL CAD file slicer", size=(800, 600))
+        wx.Frame.__init__(self, None, -1, "HomePrint - MIT Mediated Matter", size=(800, 600))
         self.slice_parameter = {"height":"1.0", "pitch":"1.0", "speed":"10", "fast":"20", "direction":"+Z", "scale":"1"}
         self.create_menubar()
         #self.create_toolbar()
