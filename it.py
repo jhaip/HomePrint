@@ -279,10 +279,17 @@ class Layer:
         glBegin(GL_POINTS)
         glColor(1, 0, 1)
         for loop in self.loops:
+            counter = 0
             for line in loop:
-                for p in [line.p1, line.p2]:
-                    glVertex3f(p.x, p.y, p.z)
-        
+                #for p in [line.p1, line.p2]:
+                if counter == 0:
+                    glColor(0,1,1)
+                elif counter == 1:
+                    glColor(1,0,0)
+                else:
+                    glColor(1,0,1)
+                glVertex3f(line.p1.x, line.p1.y, line.p1.z)
+                counter += 1
         glEnd()
 
         glEndList()
@@ -932,7 +939,7 @@ class PathCanvas(glcanvas.GLCanvas):
         glOrtho(left, right, bottom, top, near, far)
 
         glEnable(GL_VERTEX_PROGRAM_POINT_SIZE)
-        glPointSize(4.0)
+        glPointSize(5.0)
 
     def show_path(self):
         if self.cadmodel.sliced:
@@ -985,7 +992,7 @@ class ModelCanvas(glcanvas.GLCanvas):
         for x in xrange(-gridw*cellsize,gridw*cellsize,cellsize):
             for y in xrange(-gridh*cellsize,gridh*cellsize,cellsize):
                 #glColor(0,0,1)
-                glColor(0.2,0.2,0)
+                glColor(0.3,0.3,0)
                 if x == 0:
                     glColor(1,1,1)
                 glVertex3f(x,-gridh*cellsize,0)
@@ -1021,7 +1028,9 @@ class ModelCanvas(glcanvas.GLCanvas):
         
         # Move model to origin
         #glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, -self.cadmodel.zcenter)
-        glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, 0)
+        
+        # Move model to origin, at z = 0
+        #glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, 0)
 
         glCallList(self.cadmodel.model_list_id)
 
@@ -1029,8 +1038,8 @@ class ModelCanvas(glcanvas.GLCanvas):
             layer_id = self.cadmodel.create_gl_layer_list()
             glCallList(layer_id)
 
-        glTranslatef(self.cadmodel.xcenter, self.cadmodel.ycenter, 0)
-
+        # Model coordinate system back to (0,0,0)
+        #glTranslatef(self.cadmodel.xcenter, self.cadmodel.ycenter, 0)
 
     def show_axis(self):
         glLineWidth(3.)
@@ -1141,9 +1150,10 @@ class ModelCanvas(glcanvas.GLCanvas):
         glMaterial(GL_FRONT, GL_SHININESS, 50)#96)
 
         glEnable(GL_VERTEX_PROGRAM_POINT_SIZE)
-        glPointSize(4.0)
+        glPointSize(7.0)
 
-        glShadeModel(GL_SMOOTH)   
+        glShadeModel(GL_SMOOTH)
+        glEnable(GL_POINT_SMOOTH)   
 
 class DimensionPanel(wx.Panel):
     def __init__(self, parent):
