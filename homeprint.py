@@ -1117,7 +1117,7 @@ class ModelCanvas(glcanvas.GLCanvas):
             right = half * factor
             bottom = -half
             top = half
-        near = 0
+        near = -maxlen * 4
         far = maxlen * 4
         zoom = 2.
         glOrtho(left*zoom, right*zoom, bottom*zoom, top*zoom, near*zoom, far*zoom)    
