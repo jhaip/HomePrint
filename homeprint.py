@@ -986,13 +986,15 @@ class ModelCanvas(glcanvas.GLCanvas):
     def show_grid(self):
         glLineWidth(1.)
         glBegin(GL_LINES)
-        cellsize = 3
+        cellsize = 0.1
         gridw = 10
         gridh = 10
-        for x in xrange(-gridw*cellsize,gridw*cellsize,cellsize):
-            for y in xrange(-gridh*cellsize,gridh*cellsize,cellsize):
+        x = -gridw*cellsize
+        while x <= gridw*cellsize:
+            y = -gridh*cellsize
+            while y <= gridh*cellsize:
                 #glColor(0,0,1)
-                glColor(0.3,0.3,0)
+                glColor(0,0.5,0.5)
                 if x == 0:
                     glColor(1,1,1)
                 glVertex3f(x,-gridh*cellsize,0)
@@ -1002,6 +1004,9 @@ class ModelCanvas(glcanvas.GLCanvas):
                     glColor(1,1,1)
                 glVertex3f(-gridw*cellsize,y,0)
                 glVertex3f(gridw*cellsize,y,0)
+
+                y += cellsize
+            x += cellsize
 
         glEnd()
     
