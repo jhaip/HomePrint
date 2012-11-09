@@ -268,7 +268,7 @@ class Layer:
                 for p in [line.p1, line.p2]:
                     glVertex3f(p.x, p.y, p.z)
         
-        glColor(1, 1, 1)
+        glColor(1, 1, 0)
         for loop in self.loops:
             for line in loop:
                 for p in [line.p1, line.p2]:
@@ -477,14 +477,14 @@ class Layer:
         else:
             return False  
 
-    def write(self, f):
+    def write(self, f, global_start):
         #print >> f, '<layer id="', self.id, '">'
-        self.writeloop(f)
+        self.writeloop(f, global_start)
         #self.writechunks(f)
         #print >> f, '</layer>'
-        print >> f, 'WAIT 30.0'
+        print >> f, 'WAIT SEC 30.0'
     
-    def writeloop(self, f):
+    def writeloop(self, f, global_start):
         #print >> f, '<loops num="', len(self.loops), '">'
         count = 1
         for loop in self.loops:
@@ -492,15 +492,17 @@ class Layer:
             lastline = None
             for line in loop:
                 if lastline != None:
-                    if line.p1 != lastline.p2:
-                        print >> f, 'LIN {X '+str(int(line.p1.x*1000))+', Y '+str(int(line.p1.y*1000))+', Z '+str(int(line.p1.z*1000))+'} c_vel'
-                    print >> f, 'LIN {X '+str(int(line.p2.x*1000))+', Y '+str(int(line.p2.y*1000))+', Z '+str(int(line.p2.z*1000))+'} c_vel'
+                    if (int(line.p1.x) != int(lastline.p2.x)) or (int(line.p1.y) != int(lastline.p2.y)) or (int(line.p1.z) != int(lastline.p2.z)):
+                        print >> f, 'LIN {X '+str(int(global_start.x+line.p1.x*1000))+', Y '+str(int(global_start.y+line.p1.y*1000))+', Z '+str(int(global_start.z+line.p1.z*1000))+'} c_vel'
+                    print >> f, 'LIN {X '+str(int(global_start.x+line.p2.x*1000))+', Y '+str(int(global_start.y+line.p2.y*1000))+', Z '+str(int(global_start.z+line.p2.z*1000))+'} c_vel'
                 else:
-                    print >> f, 'LIN {X '+str(int(line.p1.x*1000))+', Y '+str(int(line.p1.y*1000))+', Z '+str(int(line.p1.z*1000))+'} c_vel'
-                    print >> f, 'LIN {X '+str(int(line.p2.x*1000))+', Y '+str(int(line.p2.y*1000))+', Z '+str(int(line.p2.z*1000))+'} c_vel'
+                    print >> f, 'LIN {X '+str(int(global_start.x+line.p1.x*1000))+', Y '+str(int(global_start.y+line.p1.y*1000))+', Z '+str(int(global_start.z+line.p1.z*1000))+'} c_vel'
+                    print >> f, 'LIN {X '+str(int(global_start.x+line.p2.x*1000))+', Y '+str(int(global_start.y+line.p2.y*1000))+', Z '+str(int(global_start.z+line.p2.z*1000))+'} c_vel'
                 #writeline(line, f)
+                lastline = line
             count += 1
         #print >> f, '</loops>'
+        return self.loops
 
     def writechunks(self, f):
         print >> f, '<chunks num="', len(self.chunks), '">'
@@ -740,7 +742,7 @@ class CadModel:
         print >> f, ''
 
         for layer in self.layers:
-            layer.write(f)
+            layer.write(f, self.global_start)
 
         print >> f, 'END'
 
@@ -752,6 +754,7 @@ class CadModel:
         #self.fast = float(para["fast"])
         self.direction = para["direction"]
         self.scale = float(para["scale"])
+        self.global_start = Point(float(para["global_start_x"]),float(para["global_start_y"]),float(para["global_start_z"]))
         
         self.scale_model(self.scale)
         self.change_direction(self.direction)
@@ -968,14 +971,37 @@ class ModelCanvas(glcanvas.GLCanvas):
         self.SetCurrent()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         self.show_model()
-        self.show_path()
+        #self.show_path()
+        self.show_grid()
         self.show_axis()
         self.SwapBuffers()
+
+    def show_grid(self):
+        glLineWidth(1.)
+        glBegin(GL_LINES)
+        cellsize = 3
+        gridw = 10
+        gridh = 10
+        for x in xrange(-gridw*cellsize,gridw*cellsize,cellsize):
+            for y in xrange(-gridh*cellsize,gridh*cellsize,cellsize):
+                #glColor(0,0,1)
+                glColor(0.2,0.2,0)
+                if x == 0:
+                    glColor(1,1,1)
+                glVertex3f(x,-gridh*cellsize,0)
+                glVertex3f(x,gridh*cellsize,0)
+                #glColor(1,0,1)
+                if y == 0:
+                    glColor(1,1,1)
+                glVertex3f(-gridw*cellsize,y,0)
+                glVertex3f(gridw*cellsize,y,0)
+
+        glEnd()
     
-    def show_path(self):
-        if self.cadmodel.sliced:
-            layer_id = self.cadmodel.create_gl_layer_list()
-            glCallList(layer_id)
+    #def show_path(self):
+    #    if self.cadmodel.sliced:
+    #        layer_id = self.cadmodel.create_gl_layer_list()
+    #        glCallList(layer_id)
 
     def show_model(self):
         if not self.cadmodel.loaded:
@@ -985,6 +1011,8 @@ class ModelCanvas(glcanvas.GLCanvas):
         self.setup_projection()
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
+
+        glRotate(45,0,0,1)
          
         glTranslatef(0, 0, -self.cadmodel.diameter)
         # Rotate model
@@ -992,12 +1020,19 @@ class ModelCanvas(glcanvas.GLCanvas):
         glRotatef(self.yangle, 0, 1, 0)
         
         # Move model to origin
-        glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, -self.cadmodel.zcenter)
-        
+        #glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, -self.cadmodel.zcenter)
+        glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, 0)
+
         glCallList(self.cadmodel.model_list_id)
 
-    def show_axis(self):
+        if self.cadmodel.sliced:
+            layer_id = self.cadmodel.create_gl_layer_list()
+            glCallList(layer_id)
 
+        glTranslatef(self.cadmodel.xcenter, self.cadmodel.ycenter, 0)
+
+
+    def show_axis(self):
         glLineWidth(3.)
         glBegin(GL_LINES)
         glColor(1,0,0)
@@ -1075,7 +1110,8 @@ class ModelCanvas(glcanvas.GLCanvas):
             top = half
         near = 0
         far = maxlen * 4
-        glOrtho(left, right, bottom, top, near, far)    
+        zoom = 2.
+        glOrtho(left*zoom, right*zoom, bottom*zoom, top*zoom, near*zoom, far*zoom)    
 
     def setup_gl_context(self):
         glMatrixMode(GL_PROJECTION)
@@ -1170,6 +1206,15 @@ class ControlPanel(wx.Panel):
         sizer.Add((10,10)) 
         sliceSizer = self.create_slice_info()
         sizer.Add(sliceSizer, 0, wx.EXPAND)
+
+        # Slice Button
+        box = wx.BoxSizer(wx.HORIZONTAL)
+        box.Add(wx.Button(self, -1, 'Slice'), 1 )
+        
+
+        axis = ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]
+        box.Add(wx.ComboBox(self, value='+Z', pos=wx.DefaultPosition, size=wx.DefaultSize, choices=axis, style=wx.CB_READONLY), 1)
+        sizer.Add(box, 0, wx.EXPAND)
 
         # image
         # sizer.AddStretchSpacer()
