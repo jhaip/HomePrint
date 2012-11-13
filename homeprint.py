@@ -484,20 +484,30 @@ class Layer:
         else:
             return False  
 
+    def distance(xi,xii,yi,yii):
+        sq1 = (xi-xii)*(xi-xii)
+        sq2 = (yi-yii)*(yi-yii)
+        return math.sqrt(sq1 + sq2)
+
     def write(self, f, global_start):
         #print >> f, '<layer id="', self.id, '">'
-        self.writeloop(f, global_start)
+        len = self.writeloop(f, global_start)
         #self.writechunks(f)
         #print >> f, '</layer>'
+        print "LINE LENGTH"
+        print len
         print >> f, 'WAIT SEC 30.0'
     
     def writeloop(self, f, global_start):
         #print >> f, '<loops num="', len(self.loops), '">'
         count = 1
+        looplength = 0
         for loop in self.loops:
             #print >> f, '<loop id="', count, '">'
+            print >> f, 'OUT[4] = TRUE'
             lastline = None
             for line in loop:
+                looplength += self.distance(line.p1.x,line.p2.x,line.p1.y,line.p2.y)
                 if lastline != None:
                     if (int(line.p1.x) != int(lastline.p2.x)) or (int(line.p1.y) != int(lastline.p2.y)) or (int(line.p1.z) != int(lastline.p2.z)):
                         print >> f, 'LIN {X '+str(int(global_start.x+line.p1.x*1000))+', Y '+str(int(global_start.y+line.p1.y*1000))+', Z '+str(int(global_start.z+line.p1.z*1000))+'} c_vel'
@@ -508,8 +518,9 @@ class Layer:
                 #writeline(line, f)
                 lastline = line
             count += 1
+            print >> f, 'OUT[4] = FALSE'
         #print >> f, '</loops>'
-        return self.loops
+        return looplength
 
     def writechunks(self, f):
         print >> f, '<chunks num="', len(self.chunks), '">'
@@ -802,6 +813,7 @@ class CadModel:
     
     def change_direction(self, direction):
         for facet in self.facets:
+            print "changing direction"
             facet.change_direction(direction)
     
     def create_layers(self):
@@ -988,6 +1000,7 @@ class ModelCanvas(glcanvas.GLCanvas):
         glBegin(GL_LINES)
         cellsize = 0.1
         gridw = 10
+
         gridh = 10
         x = -gridw*cellsize
         while x <= gridw*cellsize:
@@ -1202,8 +1215,9 @@ class DimensionPanel(wx.Panel):
             self.txt_fields[key].SetValue(dimension[key])
 
 class ControlPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, cadmodel):
         wx.Panel.__init__(self, parent, -1)
+        self.cadmodel = cadmodel
         self.create_controls()
 
     def create_controls(self):
@@ -1225,11 +1239,15 @@ class ControlPanel(wx.Panel):
         # Slice Button
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(wx.Button(self, -1, 'Slice'), 1 )
-        
-
-        axis = ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]
-        box.Add(wx.ComboBox(self, value='+Z', pos=wx.DefaultPosition, size=wx.DefaultSize, choices=axis, style=wx.CB_READONLY), 1)
         sizer.Add(box, 0, wx.EXPAND)
+        
+        # Change Axis
+        box2 = wx.BoxSizer(wx.HORIZONTAL)
+        axis = ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]
+        box2.Add(wx.ComboBox(self, value='+Z', pos=wx.DefaultPosition, size=wx.DefaultSize, choices=axis, style=wx.CB_READONLY), 1)
+        sizer.Add(box2, 0, wx.EXPAND)
+
+        self.Bind(wx.EVT_COMBOBOX, self.OnSelect)
 
         # image
         # sizer.AddStretchSpacer()
@@ -1241,6 +1259,17 @@ class ControlPanel(wx.Panel):
         # img = img.ConvertToGreyscale()
         # sb = wx.StaticBitmap(self, -1, wx.BitmapFromImage(img), style=wx.RAISED_BORDER)
         # sizer.Add(sb, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+    def OnSelect(self, event):
+        item = event.GetSelection()
+        axis = ['+X', '-X', '+Y', '-Y', '+Z', '-Z']
+        print "ON SELECT EVENT"
+        print axis[item]
+        print "THAT's WHAT HAPPENED"
+        self.cadmodel.direction = axis[item]
+        self.cadmodel.change_direction(axis[item])
+        self.cadmodel.calc_dimension()
+        self.cadmodel.set_new_dimension()
 
     def create_slice_info(self):
         self.txt_fields = {}
@@ -1285,7 +1314,7 @@ class BlackcatFrame(wx.Frame):
         #self.slice_parameter = {"height":"1.0", "pitch":"1.0", "speed":"10", "fast":"20", "direction":"+Z", "scale":"1"}
         self.slice_parameter = {"height":"1.0", "speed":"0.3", "pitch": "1.0", "direction":"+Z", "scale":"1", "global_start_x":"0", "global_start_y":"0", "global_start_z":"0"}
         self.create_menubar()
-        #self.create_toolbar()
+        self.create_toolbar()
         self.cadmodel = CadModel()
         self.statusbar = self.CreateStatusBar()
         self.create_panel()
@@ -1338,7 +1367,7 @@ class BlackcatFrame(wx.Frame):
         self.Refresh()
 
     def create_panel(self):
-        self.left_panel  = ControlPanel(self)
+        self.left_panel  = ControlPanel(self, self.cadmodel)
         
         self.sp = wx.SplitterWindow(self)
         self.model_panel = wx.Panel(self.sp, style=wx.SUNKEN_BORDER)
