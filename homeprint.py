@@ -771,10 +771,10 @@ class CadModel:
         self.speed = float(para["speed"])
         #self.fast = float(para["fast"])
         self.direction = para["direction"]
-        self.scale = float(para["scale"])
+        #self.scale = float(para["scale"])
         self.global_start = Point(float(para["global_start_x"]),float(para["global_start_y"]),float(para["global_start_z"]))
         
-        self.scale_model(self.scale)
+        #self.scale_model(self.scale)
         self.change_direction(self.direction)
         self.calc_dimension()
         self.create_layers()
@@ -1356,7 +1356,7 @@ class BlackcatFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, "HomePrint - MIT Mediated Matter", size=(800, 600))
         #self.slice_parameter = {"height":"1.0", "pitch":"1.0", "speed":"10", "fast":"20", "direction":"+Z", "scale":"1"}
-        self.slice_parameter = {"height":"1.0", "speed":"0.3", "pitch": "1.0", "direction":"+Z", "scale":"1", "global_start_x":"0", "global_start_y":"0", "global_start_z":"0"}
+        self.slice_parameter = {"height":"1.0", "speed":"0.3", "pitch": "1.0", "direction":"+Z", "global_start_x":"0", "global_start_y":"0", "global_start_z":"0"}
         self.create_menubar()
         self.create_toolbar()
         self.cadmodel = CadModel()
@@ -1546,7 +1546,7 @@ class BlackcatFrame(wx.Frame):
                 pdlg.Destroy()
             
             self.model_canvas.create_model()
-            self.left_panel.set_dimension(self.cadmodel.dimension)
+            #self.left_panel.set_dimension(self.cadmodel.dimension)
             self.left_panel.set_slice_info(self.slice_parameter)
             self.path_canvas.Refresh()
 
@@ -1653,10 +1653,11 @@ class SlicePanel(wx.Panel):
         box.Add(self.dir_choice, 0, wx.EXPAND)
         
         # scale
-        lbl = wx.StaticText(self, label="Scale factor")
-        box.Add(lbl, 0, 0)
-        scale_txt = wx.TextCtrl(self, -1, "1", size=(80, -1), validator=CharValidator(self.data, "scale"))
-        box.Add(scale_txt, 0, wx.EXPAND)
+        #lbl = wx.StaticText(self, label="Scale factor")
+        #box.Add(lbl, 0, 0)
+        #scale_txt = wx.TextCtrl(self, -1, "1", size=(80, -1), validator=CharValidator(self.data, "scale"))
+        #box.Add(scale_txt, 0, wx.EXPAND)
+
         self.SetSizer(outsizer)
 
     def get_direction(self):
