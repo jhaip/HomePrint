@@ -550,6 +550,8 @@ class CadModel:
         self.curr_layer = -1
         self.sliced = False
         self.dimension = {}
+        self.old_dimension = {}
+        self.scale = 1
     
     def next_layer(self):
         n = len(self.layers)
@@ -789,17 +791,19 @@ class CadModel:
             return False
     
     def set_old_dimension(self):
-        self.dimension["oldx"] = str(self.xsize)
-        self.dimension["oldy"] = str(self.ysize)
-        self.dimension["oldz"] = str(self.zsize)
-        self.dimension["newx"] = ""
-        self.dimension["newy"] = ""
-        self.dimension["newz"] = ""
+        self.old_dimension["x"] = self.xsize
+        self.old_dimension["y"] = self.ysize
+        self.old_dimension["z"] = self.zsize
+        self.dimension["x"] = str(self.xsize)
+        self.dimension["y"] = str(self.ysize)
+        self.dimension["z"] = str(self.zsize)
+        self.dimension["factor"] = str(self.scale)
 
     def set_new_dimension(self):
-        self.dimension["newx"] = str(self.xsize)
-        self.dimension["newy"] = str(self.ysize)
-        self.dimension["newz"] = str(self.zsize)
+        self.dimension["x"] = str(self.xsize)
+        self.dimension["y"] = str(self.ysize)
+        self.dimension["z"] = str(self.zsize)
+        self.dimension["factor"] = str(self.scale)
 
     def scale_model(self, factor):
         self.facets = []
@@ -1182,14 +1186,13 @@ class ModelCanvas(glcanvas.GLCanvas):
         glEnable(GL_POINT_SMOOTH)   
 
 class DimensionPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, cadmodel):
         wx.Panel.__init__(self, parent)
+        self.cadmodel = cadmodel
         self.ids = {"X":5300,"Y":5302,"Z":5303,"Factor":5304}
-        self.dimensions = {"X":1.0,"Y":5.0,"Z":1.0,"Factor":1.0}
         self.handlers = {"X":self.OnDimXChange,"Y":self.OnDimYChange,"Z":self.OnDimZChange,"Factor":self.OnFactorChange}
         self.txt_fields = {}
         self.create_controls()
-        
 
     def create_controls(self):
         box = wx.StaticBox(self, label="Dimension") 
@@ -1197,7 +1200,7 @@ class DimensionPanel(wx.Panel):
         self.SetSizer(sizer)
         
         label = "Original"
-        items = [("X", "oldx"), ("Y", "oldy"), ("Z", "oldz"),("Factor","factor")]
+        items = [("X", "x"), ("Y", "y"), ("Z", "z"),("Factor","factor")]
         s1 = self.create_dimension(label, items)
         sizer.Add(s1, 1, wx.EXPAND|wx.ALL, 2)
 
@@ -1214,9 +1217,7 @@ class DimensionPanel(wx.Panel):
         flex = wx.FlexGridSizer(rows=len(items), cols=2, hgap=2, vgap=2)
         for label, key in items:
             lbl_ctrl = wx.StaticText(self, label=label)
-            txt_ctrl = wx.TextCtrl(self, id=self.ids[label], value=str(self.dimensions[label]), size=(70, -1), style=wx.TE_PROCESS_ENTER)
-            #txt = wx.TextCtrl(self, -1, dvalue, size=(80, -1), validator=CharValidator(self.data, key))
-            #ids[key] = txt_ctrl.getId()
+            txt_ctrl = wx.TextCtrl(self, id=self.ids[label], value="", size=(70, -1), style=wx.TE_PROCESS_ENTER)
             flex.Add(lbl_ctrl)
             flex.Add(txt_ctrl, 0, wx.EXPAND)
             self.txt_fields[key] = txt_ctrl
@@ -1233,30 +1234,27 @@ class DimensionPanel(wx.Panel):
             self.txt_fields[key].SetValue(dimension[key])
 
     def update_dimension(self,factor):
-        self.dimensions["Factor"] = factor
-        self.dimensions["X"] *= factor
-        self.dimensions["Y"] *= factor
-        self.dimensions["Z"] *= factor
+        print "Updating dimensions"
+        self.cadmodel.scale = factor
+        self.cadmodel.scale_model(factor)
+        self.cadmodel.calc_dimension()
+        self.cadmodel.set_new_dimension()
 
     def OnDimXChange(self, event):
-        v = float(self.txt_fields["oldx"].GetValue())
-        self.update_dimension(v/self.dimensions["X"])
-        self.set_values({"oldx":str(self.dimensions["X"]),"oldy":str(self.dimensions["Y"]),"oldz":str(self.dimensions["Z"]),"factor":str(self.dimensions["Factor"])})
+        v = float(self.txt_fields["x"].GetValue())
+        self.update_dimension(v/self.cadmodel.old_dimension["x"])
 
     def OnDimYChange(self, event):
-        v = float(self.txt_fields["oldy"].GetValue())
-        self.update_dimension(v/self.dimensions["Y"])
-        self.set_values({"oldx":str(self.dimensions["X"]),"oldy":str(self.dimensions["Y"]),"oldz":str(self.dimensions["Z"]),"factor":str(self.dimensions["Factor"])})
+        v = float(self.txt_fields["y"].GetValue())
+        self.update_dimension(v/self.cadmodel.old_dimension["y"])
 
     def OnDimZChange(self, event):
-        v = float(self.txt_fields["oldz"].GetValue())
-        self.update_dimension(v/self.dimensions["Z"])
-        self.set_values({"oldx":str(self.dimensions["X"]),"oldy":str(self.dimensions["Y"]),"oldz":str(self.dimensions["Z"]),"factor":str(self.dimensions["Factor"])})
+        v = float(self.txt_fields["z"].GetValue())
+        self.update_dimension(v/self.cadmodel.old_dimension["z"])
 
     def OnFactorChange(self, event):
         f = float(self.txt_fields["factor"].GetValue())
         self.update_dimension(f)
-        self.set_values({"oldx":str(self.dimensions["X"]),"oldy":str(self.dimensions["Y"]),"oldz":str(self.dimensions["Z"]),"factor":str(self.dimensions["Factor"])})
 
 class ControlPanel(wx.Panel):
     def __init__(self, parent, cadmodel):
@@ -1272,7 +1270,7 @@ class ControlPanel(wx.Panel):
         self.SetSizer(mainsizer)
         
         # Dimension panel
-        self.dimensionPanel = DimensionPanel(self)
+        self.dimensionPanel = DimensionPanel(self, self.cadmodel)
         sizer.Add(self.dimensionPanel, 0, wx.EXPAND|wx.ALIGN_CENTER)
         
         # Slice info panel
@@ -1286,12 +1284,11 @@ class ControlPanel(wx.Panel):
         sizer.Add(box, 0, wx.EXPAND)
         
         # Change Axis
-        box2 = wx.BoxSizer(wx.HORIZONTAL)
-        axis = ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]
-        box2.Add(wx.ComboBox(self, value='+Z', pos=wx.DefaultPosition, size=wx.DefaultSize, choices=axis, style=wx.CB_READONLY), 1)
-        sizer.Add(box2, 0, wx.EXPAND)
-
-        self.Bind(wx.EVT_COMBOBOX, self.OnSelect)
+        #box2 = wx.BoxSizer(wx.HORIZONTAL)
+        #axis = ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]
+        #box2.Add(wx.ComboBox(self, value='+Z', pos=wx.DefaultPosition, size=wx.DefaultSize, choices=axis, style=wx.CB_READONLY), 1)
+        #sizer.Add(box2, 0, wx.EXPAND)
+        #self.Bind(wx.EVT_COMBOBOX, self.OnSelect)
 
         # image
         # sizer.AddStretchSpacer()
@@ -1304,16 +1301,16 @@ class ControlPanel(wx.Panel):
         # sb = wx.StaticBitmap(self, -1, wx.BitmapFromImage(img), style=wx.RAISED_BORDER)
         # sizer.Add(sb, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
-    def OnSelect(self, event):
-        item = event.GetSelection()
-        axis = ['+X', '-X', '+Y', '-Y', '+Z', '-Z']
-        print "ON SELECT EVENT"
-        print axis[item]
-        print "THAT's WHAT HAPPENED"
-        self.cadmodel.direction = axis[item]
-        self.cadmodel.change_direction(axis[item])
-        self.cadmodel.calc_dimension()
-        self.cadmodel.set_new_dimension()
+    #def OnSelect(self, event):
+    #    item = event.GetSelection()
+    #    axis = ['+X', '-X', '+Y', '-Y', '+Z', '-Z']
+    #    print "ON SELECT EVENT"
+    #    print axis[item]
+    #    print "THAT's WHAT HAPPENED"
+    #    self.cadmodel.direction = axis[item]
+    #    self.cadmodel.change_direction(axis[item])
+    #    self.cadmodel.calc_dimension()
+    #    self.cadmodel.set_new_dimension()
 
     def create_slice_info(self):
         self.txt_fields = {}
