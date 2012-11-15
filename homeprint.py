@@ -1184,8 +1184,12 @@ class ModelCanvas(glcanvas.GLCanvas):
 class DimensionPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
+        self.ids = {"X":5300,"Y":5302,"Z":5303,"Factor":5304}
+        self.dimensions = {"X":1.0,"Y":5.0,"Z":1.0,"Factor":1.0}
+        self.handlers = {"X":self.OnDimXChange,"Y":self.OnDimYChange,"Z":self.OnDimZChange,"Factor":self.OnFactorChange}
         self.txt_fields = {}
         self.create_controls()
+        
 
     def create_controls(self):
         box = wx.StaticBox(self, label="Dimension") 
@@ -1193,14 +1197,14 @@ class DimensionPanel(wx.Panel):
         self.SetSizer(sizer)
         
         label = "Original"
-        items = [("X", "oldx"), ("Y", "oldy"), ("Z", "oldz")]
+        items = [("X", "oldx"), ("Y", "oldy"), ("Z", "oldz"),("Factor","factor")]
         s1 = self.create_dimension(label, items)
         sizer.Add(s1, 1, wx.EXPAND|wx.ALL, 2)
 
-        label = "Scaled"
-        items = [("X", 'newx'), ('Y', 'newy'), ('Z', 'newz')]
-        s2 = self.create_dimension(label, items)
-        sizer.Add(s2, 1, wx.EXPAND|wx.ALL, 2)
+        #label = "Scaled"
+        #items = [("X", 'newx'), ('Y', 'newy'), ('Z', 'newz')]
+        #s2 = self.create_dimension(label, items)
+        #sizer.Add(s2, 1, wx.EXPAND|wx.ALL, 2)
 
     def create_dimension(self, label, items):
         sizer = wx.BoxSizer(wx.VERTICAL) 
@@ -1210,10 +1214,16 @@ class DimensionPanel(wx.Panel):
         flex = wx.FlexGridSizer(rows=len(items), cols=2, hgap=2, vgap=2)
         for label, key in items:
             lbl_ctrl = wx.StaticText(self, label=label)
-            txt_ctrl = wx.TextCtrl(self, size=(70, -1), style=wx.TE_READONLY)
+            txt_ctrl = wx.TextCtrl(self, id=self.ids[label], value=str(self.dimensions[label]), size=(70, -1), style=wx.TE_PROCESS_ENTER)
+            #txt = wx.TextCtrl(self, -1, dvalue, size=(80, -1), validator=CharValidator(self.data, key))
+            #ids[key] = txt_ctrl.getId()
             flex.Add(lbl_ctrl)
             flex.Add(txt_ctrl, 0, wx.EXPAND)
             self.txt_fields[key] = txt_ctrl
+
+        for i in self.ids:
+            self.Bind(wx.EVT_TEXT_ENTER, self.handlers[i], id=self.ids[i])
+
         sizer.Add(flex, 0, wx.EXPAND)
         flex.AddGrowableCol(1, 1)
         return sizer
@@ -1221,6 +1231,32 @@ class DimensionPanel(wx.Panel):
     def set_values(self, dimension):
         for key in dimension:
             self.txt_fields[key].SetValue(dimension[key])
+
+    def update_dimension(self,factor):
+        self.dimensions["Factor"] = factor
+        self.dimensions["X"] *= factor
+        self.dimensions["Y"] *= factor
+        self.dimensions["Z"] *= factor
+
+    def OnDimXChange(self, event):
+        v = float(self.txt_fields["oldx"].GetValue())
+        self.update_dimension(v/self.dimensions["X"])
+        self.set_values({"oldx":str(self.dimensions["X"]),"oldy":str(self.dimensions["Y"]),"oldz":str(self.dimensions["Z"]),"factor":str(self.dimensions["Factor"])})
+
+    def OnDimYChange(self, event):
+        v = float(self.txt_fields["oldy"].GetValue())
+        self.update_dimension(v/self.dimensions["Y"])
+        self.set_values({"oldx":str(self.dimensions["X"]),"oldy":str(self.dimensions["Y"]),"oldz":str(self.dimensions["Z"]),"factor":str(self.dimensions["Factor"])})
+
+    def OnDimZChange(self, event):
+        v = float(self.txt_fields["oldz"].GetValue())
+        self.update_dimension(v/self.dimensions["Z"])
+        self.set_values({"oldx":str(self.dimensions["X"]),"oldy":str(self.dimensions["Y"]),"oldz":str(self.dimensions["Z"]),"factor":str(self.dimensions["Factor"])})
+
+    def OnFactorChange(self, event):
+        f = float(self.txt_fields["factor"].GetValue())
+        self.update_dimension(f)
+        self.set_values({"oldx":str(self.dimensions["X"]),"oldy":str(self.dimensions["Y"]),"oldz":str(self.dimensions["Z"]),"factor":str(self.dimensions["Factor"])})
 
 class ControlPanel(wx.Panel):
     def __init__(self, parent, cadmodel):
