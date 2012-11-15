@@ -1,0 +1,111 @@
+&ACCESS RVP
+&REL 25
+DEF C:\Users\Jacob\Code\HomePrint\arrow2.xml()
+
+;FOLD INI
+  ;FOLD BASISTECH INI
+    GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+    INTERRUPT ON 3
+    BAS (#INITMOV,0 )
+  ;ENDFOLD (BASISTECH INI)
+  ;FOLD USER INI
+    ;Make your modifications here
+
+  ;ENDFOLD (USER INI)
+;ENDFOLD (INI)
+
+;FOLD PTP HOME  Vel= 100 % DEFAULT;%{PE}%R 5.4.37,%MKUKATPBASIS,%CMOVE,%VPTP,%P 1:PTP, 2:HOME, 3:, 5:100, 7:DEFAULT
+$BWDSTART=FALSE
+PDAT_ACT=PDEFAULT
+FDAT_ACT=FHOME
+BAS(#PTP_PARAMS,100)
+$H_POS=XHOME
+PTP XHOME
+;ENDFOLD
+
+$VEL_AXIS[1]=20
+$VEL_AXIS[2]=20
+$VEL_AXIS[3]=20
+$VEL_AXIS[4]=20
+$VEL_AXIS[5]=20
+$VEL_AXIS[6]=20
+
+$vel.cp= 1.3
+$apo.cvel= 95
+
+LIN {X 25.0, Y 1.0, Z 1.0} c_vel
+LIN {X 25.0, Y 11.0, Z 1.0} c_vel
+LIN {X 25.0, Y 11.0, Z 1.0} c_vel
+LIN {X 5.0, Y 11.0, Z 1.0} c_vel
+LIN {X 5.0, Y 11.0, Z 1.0} c_vel
+LIN {X 5.0, Y 12.0, Z 1.0} c_vel
+LIN {X 5.0, Y 12.0, Z 1.0} c_vel
+LIN {X 0.0, Y 6.0, Z 1.0} c_vel
+LIN {X 0.0, Y 6.0, Z 1.0} c_vel
+LIN {X 5.0, Y 0.0, Z 1.0} c_vel
+LIN {X 5.0, Y 0.0, Z 1.0} c_vel
+LIN {X 5.0, Y 1.0, Z 1.0} c_vel
+LIN {X 5.0, Y 1.0, Z 1.0} c_vel
+LIN {X 25.0, Y 1.0, Z 1.0} c_vel
+WAIT 30.0
+LIN {X 25.0, Y 1.0, Z 2.0} c_vel
+LIN {X 25.0, Y 11.0, Z 2.0} c_vel
+LIN {X 25.0, Y 11.0, Z 2.0} c_vel
+LIN {X 5.0, Y 11.0, Z 2.0} c_vel
+LIN {X 5.0, Y 11.0, Z 2.0} c_vel
+LIN {X 5.0, Y 12.0, Z 2.0} c_vel
+LIN {X 5.0, Y 12.0, Z 2.0} c_vel
+LIN {X 0.0, Y 6.0, Z 2.0} c_vel
+LIN {X 0.0, Y 6.0, Z 2.0} c_vel
+LIN {X 5.0, Y 0.0, Z 2.0} c_vel
+LIN {X 5.0, Y 0.0, Z 2.0} c_vel
+LIN {X 5.0, Y 1.0, Z 2.0} c_vel
+LIN {X 5.0, Y 1.0, Z 2.0} c_vel
+LIN {X 25.0, Y 1.0, Z 2.0} c_vel
+WAIT 30.0
+LIN {X 25.0, Y 1.0, Z 3.0} c_vel
+LIN {X 25.0, Y 11.0, Z 3.0} c_vel
+LIN {X 25.0, Y 11.0, Z 3.0} c_vel
+LIN {X 5.0, Y 11.0, Z 3.0} c_vel
+LIN {X 5.0, Y 11.0, Z 3.0} c_vel
+LIN {X 5.0, Y 12.0, Z 3.0} c_vel
+LIN {X 5.0, Y 12.0, Z 3.0} c_vel
+LIN {X 0.0, Y 6.0, Z 3.0} c_vel
+LIN {X 0.0, Y 6.0, Z 3.0} c_vel
+LIN {X 5.0, Y 0.0, Z 3.0} c_vel
+LIN {X 5.0, Y 0.0, Z 3.0} c_vel
+LIN {X 5.0, Y 1.0, Z 3.0} c_vel
+LIN {X 5.0, Y 1.0, Z 3.0} c_vel
+LIN {X 25.0, Y 1.0, Z 3.0} c_vel
+WAIT 30.0
+LIN {X 25.0, Y 1.0, Z 4.0} c_vel
+LIN {X 25.0, Y 11.0, Z 4.0} c_vel
+LIN {X 25.0, Y 11.0, Z 4.0} c_vel
+LIN {X 5.0, Y 11.0, Z 4.0} c_vel
+LIN {X 5.0, Y 11.0, Z 4.0} c_vel
+LIN {X 5.0, Y 12.0, Z 4.0} c_vel
+LIN {X 5.0, Y 12.0, Z 4.0} c_vel
+LIN {X 0.0, Y 6.0, Z 4.0} c_vel
+LIN {X 0.0, Y 6.0, Z 4.0} c_vel
+LIN {X 5.0, Y 0.0, Z 4.0} c_vel
+LIN {X 5.0, Y 0.0, Z 4.0} c_vel
+LIN {X 5.0, Y 1.0, Z 4.0} c_vel
+LIN {X 5.0, Y 1.0, Z 4.0} c_vel
+LIN {X 25.0, Y 1.0, Z 4.0} c_vel
+WAIT 30.0
+LIN {X 25.0, Y 1.0, Z 4.99} c_vel
+LIN {X 25.0, Y 11.0, Z 4.99} c_vel
+LIN {X 25.0, Y 11.0, Z 4.99} c_vel
+LIN {X 5.0, Y 11.0, Z 4.99} c_vel
+LIN {X 5.0, Y 11.0, Z 4.99} c_vel
+LIN {X 5.0, Y 12.0, Z 4.99} c_vel
+LIN {X 5.0, Y 12.0, Z 4.99} c_vel
+LIN {X 0.0, Y 6.0, Z 4.99} c_vel
+LIN {X 0.0, Y 6.0, Z 4.99} c_vel
+LIN {X 5.0, Y 0.0, Z 4.99} c_vel
+LIN {X 5.0, Y 0.0, Z 4.99} c_vel
+LIN {X 5.0, Y 1.0, Z 4.99} c_vel
+LIN {X 5.0, Y 1.0, Z 4.99} c_vel
+LIN {X 25.0, Y 1.0, Z 4.99} c_vel
+WAIT 30.0
+END

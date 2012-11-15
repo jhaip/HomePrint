@@ -1,0 +1,152 @@
+&ACCESS RVP
+&REL 25
+DEF microwave3()
+
+;FOLD INI
+  ;FOLD BASISTECH INI
+    GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+    INTERRUPT ON 3 
+    BAS (#INITMOV,0 )
+  ;ENDFOLD (BASISTECH INI)
+  ;FOLD USER INI
+    ;Make your modifications here
+
+  ;ENDFOLD (USER INI)
+;ENDFOLD (INI)
+
+;FOLD PTP HOME  Vel= 100 % DEFAULT;%{PE}%R 5.4.37,%MKUKATPBASIS,%CMOVE,%VPTP,%P 1:PTP, 2:HOME, 3:, 5:100, 7:DEFAULT
+$BWDSTART=FALSE
+PDAT_ACT=PDEFAULT
+FDAT_ACT=FHOME
+BAS(#PTP_PARAMS,100)
+$H_POS=XHOME
+PTP XHOME 
+;ENDFOLD
+
+$VEL_AXIS[1]=20
+$VEL_AXIS[2]=20
+$VEL_AXIS[3]=20
+$VEL_AXIS[4]=20
+$VEL_AXIS[5]=20
+$VEL_AXIS[6]=20
+
+$vel.cp= 1.3
+$apo.cvel= 95
+
+LIN {X 580, Y -550, Z 751} c_vel
+LIN {X 580, Y -550, Z 141} c_vel
+LIN {X 580, Y -530, Z 141} c_vel
+LIN {X 580, Y -530, Z 751} c_vel
+LIN {X 580, Y -510, Z 751} c_vel
+LIN {X 580, Y -510, Z 141} c_vel
+LIN {X 580, Y -490, Z 141} c_vel
+LIN {X 580, Y -490, Z 751} c_vel
+LIN {X 580, Y -470, Z 751} c_vel
+LIN {X 580, Y -470, Z 141} c_vel
+LIN {X 580, Y -450, Z 141} c_vel
+LIN {X 580, Y -450, Z 751} c_vel
+LIN {X 580, Y -430, Z 751} c_vel
+LIN {X 580, Y -430, Z 141} c_vel
+LIN {X 580, Y -410, Z 141} c_vel
+LIN {X 580, Y -410, Z 751} c_vel
+LIN {X 580, Y -390, Z 751} c_vel
+LIN {X 580, Y -390, Z 141} c_vel
+LIN {X 580, Y -370, Z 141} c_vel
+LIN {X 580, Y -370, Z 751} c_vel
+LIN {X 580, Y -350, Z 751} c_vel
+LIN {X 580, Y -350, Z 141} c_vel
+LIN {X 580, Y -330, Z 141} c_vel
+LIN {X 580, Y -330, Z 751} c_vel
+LIN {X 580, Y -310, Z 751} c_vel
+LIN {X 580, Y -310, Z 404} c_vel
+LIN {X 580, Y -290, Z 404} c_vel
+LIN {X 580, Y -290, Z 751} c_vel
+LIN {X 580, Y -270, Z 751} c_vel
+LIN {X 580, Y -270, Z 404} c_vel
+LIN {X 580, Y -250, Z 404} c_vel
+LIN {X 580, Y -250, Z 751} c_vel
+LIN {X 580, Y -230, Z 751} c_vel
+LIN {X 580, Y -230, Z 404} c_vel
+LIN {X 580, Y -210, Z 404} c_vel
+LIN {X 580, Y -210, Z 751} c_vel
+LIN {X 580, Y -190, Z 751} c_vel
+LIN {X 580, Y -190, Z 404} c_vel
+LIN {X 580, Y -170, Z 404} c_vel
+LIN {X 580, Y -170, Z 751} c_vel
+LIN {X 580, Y -150, Z 751} c_vel
+LIN {X 580, Y -150, Z 404} c_vel
+LIN {X 580, Y -130, Z 404} c_vel
+LIN {X 580, Y -130, Z 751} c_vel
+LIN {X 580, Y -110, Z 751} c_vel
+LIN {X 580, Y -110, Z 404} c_vel
+LIN {X 580, Y -90, Z 404} c_vel
+LIN {X 580, Y -90, Z 751} c_vel
+LIN {X 580, Y -70, Z 751} c_vel
+LIN {X 580, Y -70, Z 404} c_vel
+LIN {X 580, Y -50, Z 404} c_vel
+LIN {X 580, Y -50, Z 751} c_vel
+LIN {X 580, Y -30, Z 751} c_vel
+LIN {X 580, Y -30, Z 404} c_vel
+LIN {X 580, Y -10, Z 404} c_vel
+LIN {X 580, Y -10, Z 751} c_vel
+LIN {X 580, Y 10, Z 751} c_vel
+LIN {X 580, Y 10, Z 404} c_vel
+LIN {X 580, Y 30, Z 404} c_vel
+LIN {X 580, Y 30, Z 751} c_vel
+LIN {X 580, Y 50, Z 751} c_vel
+LIN {X 580, Y 50, Z 404} c_vel
+LIN {X 580, Y 70, Z 404} c_vel
+LIN {X 580, Y 70, Z 751} c_vel
+LIN {X 580, Y 90, Z 751} c_vel
+LIN {X 580, Y 90, Z 404} c_vel
+LIN {X 580, Y 110, Z 404} c_vel
+LIN {X 580, Y 110, Z 751} c_vel
+LIN {X 580, Y 130, Z 751} c_vel
+LIN {X 580, Y 130, Z 404} c_vel
+LIN {X 580, Y 150, Z 404} c_vel
+LIN {X 580, Y 150, Z 751} c_vel
+LIN {X 580, Y 170, Z 751} c_vel
+LIN {X 580, Y 170, Z 404} c_vel
+LIN {X 580, Y 190, Z 404} c_vel
+LIN {X 580, Y 190, Z 751} c_vel
+LIN {X 580, Y 210, Z 751} c_vel
+LIN {X 580, Y 210, Z 404} c_vel
+LIN {X 580, Y 230, Z 404} c_vel
+LIN {X 580, Y 230, Z 751} c_vel
+LIN {X 580, Y 250, Z 751} c_vel
+LIN {X 580, Y 250, Z 404} c_vel
+LIN {X 580, Y 270, Z 404} c_vel
+LIN {X 580, Y 270, Z 751} c_vel
+LIN {X 580, Y 290, Z 751} c_vel
+LIN {X 580, Y 290, Z 404} c_vel
+LIN {X 580, Y 310, Z 404} c_vel
+LIN {X 580, Y 310, Z 751} c_vel
+LIN {X 580, Y 330, Z 751} c_vel
+LIN {X 580, Y 330, Z 404} c_vel
+LIN {X 580, Y 350, Z 404} c_vel
+LIN {X 580, Y 350, Z 751} c_vel
+LIN {X 580, Y 370, Z 751} c_vel
+LIN {X 580, Y 370, Z 141} c_vel
+LIN {X 580, Y 390, Z 141} c_vel
+LIN {X 580, Y 390, Z 751} c_vel
+LIN {X 580, Y 410, Z 751} c_vel
+LIN {X 580, Y 410, Z 141} c_vel
+LIN {X 580, Y 430, Z 141} c_vel
+LIN {X 580, Y 430, Z 751} c_vel
+LIN {X 580, Y 450, Z 751} c_vel
+LIN {X 580, Y 450, Z 141} c_vel
+LIN {X 580, Y 470, Z 141} c_vel
+LIN {X 580, Y 470, Z 751} c_vel
+LIN {X 580, Y 490, Z 751} c_vel
+LIN {X 580, Y 490, Z 141} c_vel
+LIN {X 580, Y 510, Z 141} c_vel
+LIN {X 580, Y 510, Z 751} c_vel
+LIN {X 580, Y 530, Z 751} c_vel
+lin{X 580, Y 530, Z 141} c_vel
+lin{X 580, Y 550, Z 141} c_vel
+lin{X 580, Y 550, Z 600} c_vel
+lin{X 580, Y 570, Z 600} c_vel
+lin{X 580, Y 570, Z 141} c_vel 
+lin{X 580, Y 590, Z 141} c_vel
+lin{x 580, Y 590, Z 550} c_vel
+END

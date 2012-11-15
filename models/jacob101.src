@@ -1,0 +1,150 @@
+&ACCESS RVP
+&REL 25
+DEF jacob101()
+
+;FOLD INI
+  ;FOLD BASISTECH INI
+    GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+    INTERRUPT ON 3
+    BAS (#INITMOV,0 )
+  ;ENDFOLD (BASISTECH INI)
+  ;FOLD USER INI
+    ;Make your modifications here
+
+  ;ENDFOLD (USER INI)
+;ENDFOLD (INI)
+
+;FOLD PTP HOME  Vel= 100 % DEFAULT;%{PE}%R 5.4.37,%MKUKATPBASIS,%CMOVE,%VPTP,%P 1:PTP, 2:HOME, 3:, 5:100, 7:DEFAULT
+$BWDSTART=FALSE
+PDAT_ACT=PDEFAULT
+FDAT_ACT=FHOME
+BAS(#PTP_PARAMS,100)
+$H_POS=XHOME
+PTP XHOME
+;ENDFOLD
+
+$VEL_AXIS[1]=20
+$VEL_AXIS[2]=20
+$VEL_AXIS[3]=20
+$VEL_AXIS[4]=20
+$VEL_AXIS[5]=20
+$VEL_AXIS[6]=20
+
+$vel.cp= 0.3
+$apo.cvel= 95
+
+LIN {X 500, Y 300, Z 310} c_vel
+LIN {X 500, Y 500, Z 310} c_vel
+LIN {X 300, Y 500, Z 310} c_vel
+LIN {X 300, Y 300, Z 310} c_vel
+LIN {X 500, Y 300, Z 310} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 320} c_vel
+LIN {X 500, Y 500, Z 320} c_vel
+LIN {X 300, Y 500, Z 320} c_vel
+LIN {X 300, Y 300, Z 320} c_vel
+LIN {X 500, Y 300, Z 320} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 330} c_vel
+LIN {X 500, Y 500, Z 330} c_vel
+LIN {X 300, Y 500, Z 330} c_vel
+LIN {X 300, Y 300, Z 330} c_vel
+LIN {X 500, Y 300, Z 330} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 340} c_vel
+LIN {X 500, Y 500, Z 340} c_vel
+LIN {X 300, Y 500, Z 340} c_vel
+LIN {X 300, Y 300, Z 340} c_vel
+LIN {X 500, Y 300, Z 340} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 350} c_vel
+LIN {X 500, Y 500, Z 350} c_vel
+LIN {X 300, Y 500, Z 350} c_vel
+LIN {X 300, Y 300, Z 350} c_vel
+LIN {X 500, Y 300, Z 350} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 360} c_vel
+LIN {X 500, Y 500, Z 360} c_vel
+LIN {X 300, Y 500, Z 360} c_vel
+LIN {X 300, Y 300, Z 360} c_vel
+LIN {X 500, Y 300, Z 360} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 370} c_vel
+LIN {X 500, Y 500, Z 370} c_vel
+LIN {X 300, Y 500, Z 370} c_vel
+LIN {X 300, Y 300, Z 370} c_vel
+LIN {X 500, Y 300, Z 370} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 380} c_vel
+LIN {X 500, Y 500, Z 380} c_vel
+LIN {X 300, Y 500, Z 380} c_vel
+LIN {X 300, Y 300, Z 380} c_vel
+LIN {X 500, Y 300, Z 380} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 390} c_vel
+LIN {X 500, Y 500, Z 390} c_vel
+LIN {X 300, Y 500, Z 390} c_vel
+LIN {X 300, Y 300, Z 390} c_vel
+LIN {X 500, Y 300, Z 390} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 400} c_vel
+LIN {X 500, Y 500, Z 400} c_vel
+LIN {X 300, Y 500, Z 400} c_vel
+LIN {X 300, Y 300, Z 400} c_vel
+LIN {X 500, Y 300, Z 400} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 410} c_vel
+LIN {X 500, Y 500, Z 410} c_vel
+LIN {X 300, Y 500, Z 410} c_vel
+LIN {X 300, Y 300, Z 410} c_vel
+LIN {X 500, Y 300, Z 410} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 420} c_vel
+LIN {X 500, Y 500, Z 420} c_vel
+LIN {X 300, Y 500, Z 420} c_vel
+LIN {X 300, Y 300, Z 420} c_vel
+LIN {X 500, Y 300, Z 420} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 430} c_vel
+LIN {X 500, Y 500, Z 430} c_vel
+LIN {X 300, Y 500, Z 430} c_vel
+LIN {X 300, Y 300, Z 430} c_vel
+LIN {X 500, Y 300, Z 430} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 440} c_vel
+LIN {X 500, Y 500, Z 440} c_vel
+LIN {X 300, Y 500, Z 440} c_vel
+LIN {X 300, Y 300, Z 440} c_vel
+LIN {X 500, Y 300, Z 440} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 450} c_vel
+LIN {X 500, Y 500, Z 450} c_vel
+LIN {X 300, Y 500, Z 450} c_vel
+LIN {X 300, Y 300, Z 450} c_vel
+LIN {X 500, Y 300, Z 450} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 460} c_vel
+LIN {X 500, Y 500, Z 460} c_vel
+LIN {X 300, Y 500, Z 460} c_vel
+LIN {X 300, Y 300, Z 460} c_vel
+LIN {X 500, Y 300, Z 460} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 470} c_vel
+LIN {X 500, Y 500, Z 470} c_vel
+LIN {X 300, Y 500, Z 470} c_vel
+LIN {X 300, Y 300, Z 470} c_vel
+LIN {X 500, Y 300, Z 470} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 480} c_vel
+LIN {X 500, Y 500, Z 480} c_vel
+LIN {X 300, Y 500, Z 480} c_vel
+LIN {X 300, Y 300, Z 480} c_vel
+LIN {X 500, Y 300, Z 480} c_vel
+WAIT SEC 30.0
+LIN {X 500, Y 300, Z 490} c_vel
+LIN {X 500, Y 500, Z 490} c_vel
+LIN {X 300, Y 500, Z 490} c_vel
+LIN {X 300, Y 300, Z 490} c_vel
+LIN {X 500, Y 300, Z 490} c_vel
+WAIT SEC 30.0
+END
