@@ -1078,6 +1078,9 @@ class ModelCanvas(glcanvas.GLCanvas):
         glVertex3f(0.,0.,3.)
         glEnd()
         glLineWidth(2.)
+        glTranslatef(0.,0.,4.)
+        glutStrokeCharacter(GLUT_STROKE_ROMAN, ord('Z'));
+        glTranslatef(0.,0.,-4.)
 
     def OnMouseDown(self, evt):
         self.CaptureMouse()
