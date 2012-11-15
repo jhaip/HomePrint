@@ -879,17 +879,22 @@ class CadModel:
             return (NOT_LAYER, None)
     
     def create_gl_model_list(self):
+        wireframe = True
         self.model_list_id = 1000
         glNewList(self.model_list_id, GL_COMPILE)
         if self.loaded:
-            glColor(0.5, 0.5, 0.5)
-            glBegin(GL_TRIANGLES)
             for facet in self.facets:
-                normal = facet.normal
-                glNormal3f(normal.x, normal.y, normal.z)
+                if wireframe == False:
+                    normal = facet.normal
+                    glNormal3f(normal.x, normal.y, normal.z)
+                    glColor(0.5,0.5,0.5)
+                    glBegin(GL_TRIANGLES)
+                else:
+                    glColor(1,1,1)
+                    glBegin(GL_LINE_LOOP)
                 for p in facet.points:
                     glVertex3f(p.x, p.y, p.z)
-            glEnd()
+                glEnd()
         glEndList()
 
     def create_gl_layer_list(self):
