@@ -14,8 +14,8 @@ HomePrint is a tool used to break down a .STL model of a building to output code
 **To run:**
 
 1. Navigate to HomePrint folder containing homeprint.py
-
 2. type:
+
 
     python homeprint.py
 
