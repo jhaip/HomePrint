@@ -1010,11 +1010,14 @@ class ModelCanvas(glcanvas.GLCanvas):
         self.SwapBuffers()
 
     def show_grid(self):
+        if not self.cadmodel.loaded:
+            return
+
         glLineWidth(1.)
         glBegin(GL_LINES)
         numCell = 10.0
-        gridw = self.cadmodel.old_diameter
-        gridh = self.cadmodel.old_diameter
+        gridw = math.floor(self.cadmodel.old_diameter)
+        gridh = math.floor(self.cadmodel.old_diameter)
 
         x = -gridw*0.5
         while x <= gridw*0.5:
@@ -1274,6 +1277,8 @@ class ControlPanel(wx.Panel):
     def __init__(self, parent, cadmodel):
         wx.Panel.__init__(self, parent, -1)
         self.cadmodel = cadmodel
+        self.slice_button_id = 6060
+        self.grid_size_box = None
         self.create_controls()
 
     def create_controls(self):
@@ -1294,16 +1299,17 @@ class ControlPanel(wx.Panel):
 
         # Slice Button
         box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(wx.Button(self, -1, 'Slice'), 1 )
+        box.Add(wx.Button(self, self.slice_button_id, 'Slice'), 1 )
         sizer.Add(box, 0, wx.EXPAND)
-        
-        # Change Axis
-        #box2 = wx.BoxSizer(wx.HORIZONTAL)
-        #axis = ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]
-        #box2.Add(wx.ComboBox(self, value='+Z', pos=wx.DefaultPosition, size=wx.DefaultSize, choices=axis, style=wx.CB_READONLY), 1)
-        #sizer.Add(box2, 0, wx.EXPAND)
-        #self.Bind(wx.EVT_COMBOBOX, self.OnSelect)
 
+        # Grid Size
+        flex = wx.FlexGridSizer(rows=1, cols=2, hgap=2, vgap=5)
+        lbl_gridsize = wx.StaticText(self, label="Grid size")
+        self.grid_size_box = wx.TextCtrl(self, value="", size=(80, -1), style=wx.TE_PROCESS_ENTER)
+        flex.Add(lbl_gridsize)
+        flex.Add(self.grid_size_box, 0, wx.EXPAND)
+        sizer.Add(flex, 0, wx.EXPAND)
+        
         # image
         # sizer.AddStretchSpacer()
         # img = wx.Image('cat.jpg', wx.BITMAP_TYPE_ANY)
@@ -1350,6 +1356,7 @@ class ControlPanel(wx.Panel):
 
     def set_dimension(self, dimension): 
         self.dimensionPanel.set_values(dimension)
+        self.grid_size_box.SetValue(str(math.floor(self.cadmodel.old_diameter)))
 
     def set_slice_info(self, info):
         for key in self.txt_fields.keys():
@@ -1453,6 +1460,8 @@ class BlackcatFrame(wx.Frame):
 
         for i in self.left_panel.dimensionPanel.ids:
             self.Bind(wx.EVT_TEXT_ENTER, self.OnDimChange, id=self.left_panel.dimensionPanel.ids[i])
+
+        self.Bind(wx.EVT_BUTTON, self.OnSlice, id=self.left_panel.slice_button_id)
 
     def OnDimChange(self, event):
         self.model_panel.Refresh(False)
