@@ -552,6 +552,7 @@ class CadModel:
         self.dimension = {}
         self.old_dimension = {}
         self.scale = 1
+        self.wireframe = True
     
     def next_layer(self):
         n = len(self.layers)
@@ -726,7 +727,7 @@ class CadModel:
 
         print >> f, '&ACCESS RVP'
         print >> f, '&REL 25'
-        print >> f, 'DEF '+filename+'()'
+        print >> f, 'DEF '+os.path.splitext(os.path.basename(filename))[0]+'()'
         print >> f, ''
         print >> f, ';FOLD INI'
         print >> f, '  ;FOLD BASISTECH INI'
@@ -883,12 +884,11 @@ class CadModel:
             return (NOT_LAYER, None)
     
     def create_gl_model_list(self):
-        wireframe = True
         self.model_list_id = 1000
         glNewList(self.model_list_id, GL_COMPILE)
         if self.loaded:
             for facet in self.facets:
-                if wireframe == False:
+                if self.wireframe == False:
                     normal = facet.normal
                     glNormal3f(normal.x, normal.y, normal.z)
                     glColor(0.5,0.5,0.5)
@@ -984,6 +984,7 @@ class ModelCanvas(glcanvas.GLCanvas):
         self.xangle = 0
         self.yangle = 0
         self.zoom = 1
+        self.diameter = 0
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -1131,7 +1132,11 @@ class ModelCanvas(glcanvas.GLCanvas):
         glViewport(0, 0, size.width, size.height)
 
     def setup_projection(self):
+        #if self.diameter == 0:
+        #    self.diameter = self.cadmodel.diameter
         maxlen = self.cadmodel.diameter
+        #maxlen = self.diameter
+
         size = self.GetClientSize()
         w = size.width
         h = size.height
@@ -1154,7 +1159,7 @@ class ModelCanvas(glcanvas.GLCanvas):
             top = half
         near = -maxlen * 4
         far = maxlen * 4
-        glOrtho(left*self.zoom, right*self.zoom, bottom*self.zoom, top*self.zoom, near*self.zoom, far*self.zoom)    
+        glOrtho(left*self.zoom, right*self.zoom, bottom*self.zoom, top*self.zoom, near*self.zoom*10, far*self.zoom*10)    
 
     def setup_gl_context(self):
         glMatrixMode(GL_PROJECTION)
