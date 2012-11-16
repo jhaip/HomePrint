@@ -710,6 +710,7 @@ class CadModel:
             return False
         
         if self.loaded:
+            self.scale = 1
             self.calc_dimension()
             self.logger.debug("no of facets:" + str(len(self.facets)))
             self.oldfacets = copy.deepcopy(self.facets)
@@ -795,6 +796,7 @@ class CadModel:
         self.old_dimension["x"] = self.xsize
         self.old_dimension["y"] = self.ysize
         self.old_dimension["z"] = self.zsize
+        self.old_diameter = math.sqrt(self.old_dimension["x"]**2 + self.old_dimension["y"]**2 + self.old_dimension["z"]**2)
         self.dimension["x"] = str(self.xsize)
         self.dimension["y"] = str(self.ysize)
         self.dimension["z"] = str(self.zsize)
@@ -1132,10 +1134,7 @@ class ModelCanvas(glcanvas.GLCanvas):
         glViewport(0, 0, size.width, size.height)
 
     def setup_projection(self):
-        #if self.diameter == 0:
-        #    self.diameter = self.cadmodel.diameter
-        maxlen = self.cadmodel.diameter
-        #maxlen = self.diameter
+        maxlen = self.cadmodel.old_diameter
 
         size = self.GetClientSize()
         w = size.width
@@ -1239,6 +1238,7 @@ class DimensionPanel(wx.Panel):
         return sizer
 
     def set_values(self, dimension):
+        print dimension
         for key in dimension:
             self.txt_fields[key].SetValue(dimension[key])
 
