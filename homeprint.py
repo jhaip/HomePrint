@@ -1342,7 +1342,9 @@ class ControlPanel(wx.Panel):
         #         ("Current Layer", "currlayer")]
         items = [("Layer hight", "height"), ("Speed", "speed"), 
                  ("Direction", "direction"), ("Num Layers", "nolayer"),
-                 ("Current Layer", "currlayer")]
+                 ("Current Layer", "currlayer"),("Total Length","path_length"),
+                 ("Print Time","print_time"),("Material needed","material_needed"),
+                 ("Cost of Print","print_cost")]
         flex = wx.FlexGridSizer(rows=len(items), cols=2, hgap=2, vgap=2)
         for label, key in items:
             lbl_ctrl = wx.StaticText(self, label=label)
