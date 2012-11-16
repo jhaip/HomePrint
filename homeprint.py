@@ -484,7 +484,7 @@ class Layer:
         else:
             return False  
 
-    def distance(xi,xii,yi,yii):
+    def distance(self,xi,xii,yi,yii):
         sq1 = (xi-xii)*(xi-xii)
         sq2 = (yi-yii)*(yi-yii)
         return math.sqrt(sq1 + sq2)
@@ -1481,7 +1481,7 @@ class BlackcatFrame(wx.Frame):
     def menu_data(self):
         return (("&File", ("&Open\tCtrl+o", "Open CAD file", self.OnOpen, wx.ID_OPEN),
                           ("S&lice\tCtrl+l", "Slice CAD model", self.OnSlice, -1),
-                          ("&Save\tCtrl+s", "Save slice result as xml file", self.OnSave, wx.ID_SAVE),  
+                          ("&Save\tCtrl+s", "Save slice result as .src file", self.OnSave, wx.ID_SAVE),  
                           ("", "", "", ""),
                          ("&Quit\tCtrl+q", "Quit", self.OnQuit, wx.ID_EXIT)),
                 ("Edit", ("Next Layer\tpgdn", "next layer", self.OnNextLayer, -1),
@@ -1494,13 +1494,13 @@ class BlackcatFrame(wx.Frame):
         if not self.cadmodel.sliced:
             return
 
-        wildcard = "xml file (*.xml)|*.xml|All files (*.*)|*.*"
-        dlg = wx.FileDialog(None, "Save slice data as xml file", os.getcwd(), self.cadname, wildcard, wx.SAVE)
+        wildcard = "src file (*.src)|*.src|All files (*.*)|*.*"
+        dlg = wx.FileDialog(None, "Save slice data as .src file", os.getcwd(), self.cadname, wildcard, wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             root, ext = os.path.splitext(filename)
-            if ext.lower() != '.xml':
-                filename = filename + '.xml'
+            if ext.lower() != '.src':
+                filename = filename + '.src'
             self.cadmodel.save(filename)
             print 'slicing info is saved in', filename
 
