@@ -983,6 +983,7 @@ class ModelCanvas(glcanvas.GLCanvas):
         self.lasty = self.y = 30
         self.xangle = 0
         self.yangle = 0
+        self.zoom = 1
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -990,6 +991,7 @@ class ModelCanvas(glcanvas.GLCanvas):
         self.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
         self.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
         self.Bind(wx.EVT_MOTION, self.OnMouseMotion)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 
     def OnEraseBackground(self, event):
         pass # Do nothing, to avoid flashing on MSW.
@@ -1102,6 +1104,10 @@ class ModelCanvas(glcanvas.GLCanvas):
             self.xangle += (self.y - self.lasty)
             self.yangle += (self.x - self.lastx)
             self.Refresh(False)
+
+    def OnMouseWheel(self, evt):
+        self.zoom += evt.GetWheelRotation()*0.01
+        print self.zoom
 
     def create_model(self):
         self.xangle = 0
@@ -1239,22 +1245,27 @@ class DimensionPanel(wx.Panel):
         self.cadmodel.scale_model(factor)
         self.cadmodel.calc_dimension()
         self.cadmodel.set_new_dimension()
+        self.set_values(self.cadmodel.dimension)
 
     def OnDimXChange(self, event):
         v = float(self.txt_fields["x"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["x"])
+        event.Skip()
 
     def OnDimYChange(self, event):
         v = float(self.txt_fields["y"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["y"])
+        event.Skip()
 
     def OnDimZChange(self, event):
         v = float(self.txt_fields["z"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["z"])
+        event.Skip()
 
     def OnFactorChange(self, event):
         f = float(self.txt_fields["factor"].GetValue())
         self.update_dimension(f)
+        event.Skip()
 
 class ControlPanel(wx.Panel):
     def __init__(self, parent, cadmodel):
@@ -1436,6 +1447,14 @@ class BlackcatFrame(wx.Frame):
         self.sp.Initialize(self.model_panel)
         self.sp.SplitVertically(self.model_panel, self.path_panel, 300)
         self.sp.SetMinimumPaneSize(20)
+
+        for i in self.left_panel.dimensionPanel.ids:
+            print "YEPPP"
+            self.Bind(wx.EVT_TEXT_ENTER, self.OnDimChange, id=self.left_panel.dimensionPanel.ids[i])
+
+    def OnDimChange(self, event):
+        self.model_panel.Refresh(False)
+        event.Skip()
     
     def OnPosChanging(self, event):
         self.Refresh(False)
