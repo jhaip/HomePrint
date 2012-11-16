@@ -1059,7 +1059,7 @@ class ModelCanvas(glcanvas.GLCanvas):
         #glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, -self.cadmodel.zcenter)
         
         # Move model to origin, at z = 0
-        #glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, 0)
+        glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, 0)
 
         glCallList(self.cadmodel.model_list_id)
 
@@ -1068,7 +1068,7 @@ class ModelCanvas(glcanvas.GLCanvas):
             glCallList(layer_id)
 
         # Model coordinate system back to (0,0,0)
-        #glTranslatef(self.cadmodel.xcenter, self.cadmodel.ycenter, 0)
+        glTranslatef(self.cadmodel.xcenter, self.cadmodel.ycenter, 0)
 
     def show_axis(self):
         glLineWidth(3.)
@@ -1084,9 +1084,6 @@ class ModelCanvas(glcanvas.GLCanvas):
         glVertex3f(0.,0.,3.)
         glEnd()
         glLineWidth(2.)
-        glTranslatef(0.,0.,4.)
-        glutStrokeCharacter(GLUT_STROKE_ROMAN, ord('Z'));
-        glTranslatef(0.,0.,-4.)
 
     def OnMouseDown(self, evt):
         self.CaptureMouse()
@@ -1106,7 +1103,9 @@ class ModelCanvas(glcanvas.GLCanvas):
             self.Refresh(False)
 
     def OnMouseWheel(self, evt):
-        self.zoom += evt.GetWheelRotation()*0.01
+        self.zoom += evt.GetWheelRotation()*0.0005
+        self.zoom = max(min(self.zoom,10),0.2)
+        self.Refresh(False)
         print self.zoom
 
     def create_model(self):
@@ -1155,8 +1154,7 @@ class ModelCanvas(glcanvas.GLCanvas):
             top = half
         near = -maxlen * 4
         far = maxlen * 4
-        zoom = 2.
-        glOrtho(left*zoom, right*zoom, bottom*zoom, top*zoom, near*zoom, far*zoom)    
+        glOrtho(left*self.zoom, right*self.zoom, bottom*self.zoom, top*self.zoom, near*self.zoom, far*self.zoom)    
 
     def setup_gl_context(self):
         glMatrixMode(GL_PROJECTION)
@@ -1250,21 +1248,25 @@ class DimensionPanel(wx.Panel):
     def OnDimXChange(self, event):
         v = float(self.txt_fields["x"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["x"])
+        self.cadmodel.create_gl_model_list()
         event.Skip()
 
     def OnDimYChange(self, event):
         v = float(self.txt_fields["y"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["y"])
+        self.cadmodel.create_gl_model_list()
         event.Skip()
 
     def OnDimZChange(self, event):
         v = float(self.txt_fields["z"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["z"])
+        self.cadmodel.create_gl_model_list()
         event.Skip()
 
     def OnFactorChange(self, event):
         f = float(self.txt_fields["factor"].GetValue())
         self.update_dimension(f)
+        self.cadmodel.create_gl_model_list()
         event.Skip()
 
 class ControlPanel(wx.Panel):
@@ -1449,7 +1451,6 @@ class BlackcatFrame(wx.Frame):
         self.sp.SetMinimumPaneSize(20)
 
         for i in self.left_panel.dimensionPanel.ids:
-            print "YEPPP"
             self.Bind(wx.EVT_TEXT_ENTER, self.OnDimChange, id=self.left_panel.dimensionPanel.ids[i])
 
     def OnDimChange(self, event):
