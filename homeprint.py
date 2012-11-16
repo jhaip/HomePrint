@@ -490,20 +490,16 @@ class Layer:
         return math.sqrt(sq1 + sq2)
 
     def write(self, f, global_start):
-        #print >> f, '<layer id="', self.id, '">'
         len = self.writeloop(f, global_start)
         #self.writechunks(f)
-        #print >> f, '</layer>'
         print "LINE LENGTH"
         print len
         print >> f, 'WAIT SEC 30.0'
     
     def writeloop(self, f, global_start):
-        #print >> f, '<loops num="', len(self.loops), '">'
         count = 1
         looplength = 0
         for loop in self.loops:
-            #print >> f, '<loop id="', count, '">'
             print >> f, 'OUT[4] = TRUE'
             lastline = None
             for line in loop:
@@ -552,7 +548,7 @@ class CadModel:
         self.dimension = {}
         self.old_dimension = {}
         self.scale = 1
-        self.wireframe = True
+        self.wireframe = False
     
     def next_layer(self):
         n = len(self.layers)
@@ -660,6 +656,10 @@ class CadModel:
         else:
             self.logger.error(line)
             raise FormatError, line
+
+    def toggle_wireframe(self):
+        self.wireframe = not self.wireframe
+        self.create_gl_model_list()
     
     def calc_dimension(self):
         if self.loaded:
@@ -834,7 +834,6 @@ class CadModel:
         no = int(no)
         self.queue.put(no)
         while z >= self.minz and z <= self.maxz:
-            print 'HIT'
             code, layer = self.create_one_layer(z)
             
             if code == LAYER:
@@ -863,6 +862,7 @@ class CadModel:
         print 'no of layers:', len(self.layers)                
         cpu = '%.1f' % (time.time() - start)
         print 'slice cpu', cpu,'secs'
+
     
     def create_one_layer(self, z):
         layer = Layer(z, self.pitch)
@@ -1012,28 +1012,26 @@ class ModelCanvas(glcanvas.GLCanvas):
     def show_grid(self):
         glLineWidth(1.)
         glBegin(GL_LINES)
-        cellsize = 0.1
-        gridw = 10
+        numCell = 10.0
+        gridw = self.cadmodel.old_diameter
+        gridh = self.cadmodel.old_diameter
 
-        gridh = 10
-        x = -gridw*cellsize
-        while x <= gridw*cellsize:
-            y = -gridh*cellsize
-            while y <= gridh*cellsize:
-                #glColor(0,0,1)
+        x = -gridw*0.5
+        while x <= gridw*0.5:
+            y = -gridh*0.5
+            while y <= gridh*0.5:
                 glColor(0,0.5,0.5)
                 if x == 0:
                     glColor(1,1,1)
-                glVertex3f(x,-gridh*cellsize,0)
-                glVertex3f(x,gridh*cellsize,0)
-                #glColor(1,0,1)
+                glVertex3f(x,-gridh/2,0)
+                glVertex3f(x,gridh/2,0)
                 if y == 0:
                     glColor(1,1,1)
-                glVertex3f(-gridw*cellsize,y,0)
-                glVertex3f(gridw*cellsize,y,0)
+                glVertex3f(-gridw/2,y,0)
+                glVertex3f(gridw/2,y,0)
 
-                y += cellsize
-            x += cellsize
+                y += gridh/numCell
+            x += gridw/numCell
 
         glEnd()
     
@@ -1109,7 +1107,6 @@ class ModelCanvas(glcanvas.GLCanvas):
         self.zoom += evt.GetWheelRotation()*0.0005
         self.zoom = max(min(self.zoom,10),0.2)
         self.Refresh(False)
-        print self.zoom
 
     def create_model(self):
         self.xangle = 0
@@ -1169,8 +1166,8 @@ class ModelCanvas(glcanvas.GLCanvas):
         ambient_light = [0,0,0,1]#[0.2, 0.2, 0.2, 1.0]
         diffuse_light = [1,1,1,1]#[0.8, 0.8, 0.8, 1.0]
         specular_light = [1,1,1,1]#[0.5, 0.5, 0.5, 1.0]
-        position = [-1.5, 1.0, -4.0, 1.0]
-        position = [1,1,0]#[-15.0, 30.0, -40.0, 1.0]
+        #position = [-1.5, 1.0, -4.0, 1.0]
+        position = [-100.0, -100.0, 100.0, 1.0]
 
         glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light)
         glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light)
@@ -1238,7 +1235,6 @@ class DimensionPanel(wx.Panel):
         return sizer
 
     def set_values(self, dimension):
-        print dimension
         for key in dimension:
             self.txt_fields[key].SetValue(dimension[key])
 
@@ -1480,7 +1476,8 @@ class BlackcatFrame(wx.Frame):
                           ("", "", "", ""),
                          ("&Quit\tCtrl+q", "Quit", self.OnQuit, wx.ID_EXIT)),
                 ("Edit", ("Next Layer\tpgdn", "next layer", self.OnNextLayer, -1),
-                         ("Prev Layer\tpgup", "previous layer", self.OnPrevLayer, -1)),
+                         ("Prev Layer\tpgup", "previous layer", self.OnPrevLayer, -1),
+                         ("Wireframe\tCtrl+w", "Toggle wireframe view", self.OnWireframe, -1)),
                 ("&Help", ("&About", "About this program", self.OnAbout, wx.ID_ABOUT))
                  )
     
@@ -1517,6 +1514,10 @@ class BlackcatFrame(wx.Frame):
             menu_item = menu.Append(id, label, status)
             self.Bind(wx.EVT_MENU, handler, menu_item)
         return menu
+
+    def OnWireframe(self, event):
+        self.cadmodel.toggle_wireframe()
+        self.model_panel.Refresh(False)
 
     def OnOpen(self, event):
         wildcard = "CAD std files (*.stl)|*.stl|All files (*.*)|*.*"
