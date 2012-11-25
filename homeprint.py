@@ -185,10 +185,12 @@ class Facet:
         elif axis=="Z":
             for p in self.points:
                 op = copy.deepcopy(p)
+                print "OP: ", op.x, " ", op.y, " ", op.z
                 p.x = op.x*math.cos(angle)-op.y*math.sin(angle)
                 p.y = op.x*math.sin(angle)+op.y*math.cos(angle)
                 p.z = op.z
-    
+                print "P: ", p.x, " ", p.y, " ", p.z
+
     def change_direction(self, direction):
         if direction == "+X":
             for p in self.points:
@@ -1089,8 +1091,6 @@ class ModelCanvas(glcanvas.GLCanvas):
         glRotatef(self.xangle, 1, 0, 0)
         glRotatef(self.yangle, 0, 1, 0)
         
-        # Move model to origin
-        #glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, -self.cadmodel.zcenter)
         
         # Move model to origin, at z = 0
         glTranslatef(-self.cadmodel.xcenter, -self.cadmodel.ycenter, 0)
@@ -1341,33 +1341,29 @@ class RotatePanel(wx.Panel):
         for key in dimension:
             self.txt_fields[key].SetValue(dimension[key])
 
-    def update_dimension(self,factor):
-        print "Updating dimensions"
-        self.cadmodel.scale = factor
-        self.cadmodel.scale_model(factor)
+    def update_dimension(self,axis,angle):
+        print "Updating Rotation"
+        #self.cadmodel.scale = factor
+        self.cadmodel.rotate_model(axis,angle)
         self.cadmodel.calc_dimension()
         self.cadmodel.set_new_dimension()
-        #self.set_values(self.cadmodel.dimension)
+        self.cadmodel.create_gl_model_list()
+        #self.set_values(self.cadmodel.dimension) #PUT BACKKKK
+        self.cadmodel.create_gl_model_list()
 
     def OnDimXChange(self, event):
         v = float(self.txt_fields["x"].GetValue())
-        self.update_dimension(v/self.cadmodel.old_dimension["x"])
-        #self.cadmodel.create_gl_model_list()
-        self.cadmodel.rotate_model("X",v)
+        self.update_dimension("X",v)
         event.Skip()
 
     def OnDimYChange(self, event):
         v = float(self.txt_fields["y"].GetValue())
-        self.update_dimension(v/self.cadmodel.old_dimension["y"])
-        #self.cadmodel.create_gl_model_list()
-        self.cadmodel.rotate_model("Y",v)
+        self.update_dimension("Y",v)
         event.Skip()
 
     def OnDimZChange(self, event):
         v = float(self.txt_fields["z"].GetValue())
-        self.update_dimension(v/self.cadmodel.old_dimension["z"])
-        #self.cadmodel.create_gl_model_list()
-        self.cadmodel.rotate_model("Z",v)
+        self.update_dimension("Z",v)
         event.Skip()
 
 class ControlPanel(wx.Panel):
@@ -1666,7 +1662,7 @@ class BlackcatFrame(wx.Frame):
         dlg = ParaDialog(self, self.slice_parameter)
         result = dlg.ShowModal()
         if result == wx.ID_OK:
-            dlg.get_values()
+            #dlg.get_values()
             print 'slicing...'
             self.cadmodel.queue = Queue.Queue()
             thread.start_new_thread(self.cadmodel.slice, (self.slice_parameter,))
@@ -1786,26 +1782,8 @@ class SlicePanel(wx.Panel):
             txt = wx.TextCtrl(self, -1, dvalue, size=(80, -1), validator=CharValidator(self.data, key))
             box.Add(txt, 0, 0)
         sizer.Add(box, 0, 0)
-        
-        # slice direction
-        lbl = wx.StaticText(self, label="Slice direction")
-        box.Add(lbl, 0, 0)
-
-        self.dir_list = ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]
-        self.dir_choice = wx.Choice(self, -1, (160, -1), choices=self.dir_list)
-        self.dir_choice.SetStringSelection(self.data['direction'])
-        box.Add(self.dir_choice, 0, wx.EXPAND)
-        
-        # scale
-        #lbl = wx.StaticText(self, label="Scale factor")
-        #box.Add(lbl, 0, 0)
-        #scale_txt = wx.TextCtrl(self, -1, "1", size=(80, -1), validator=CharValidator(self.data, "scale"))
-        #box.Add(scale_txt, 0, wx.EXPAND)
 
         self.SetSizer(outsizer)
-
-    def get_direction(self):
-        return self.dir_choice.GetStringSelection()
 
 class ParaDialog(wx.Dialog):
     def __init__(self, parent, slice_parameter):
@@ -1836,9 +1814,6 @@ class ParaDialog(wx.Dialog):
 
         self.SetSizer(sizer)
         self.Fit()
-    
-    def get_values(self):
-        self.slice_parameter["direction"] = self.panel.get_direction()
 
 class BlackcatApp(wx.App):
     def __init__(self, redirect=False, filename=None):
