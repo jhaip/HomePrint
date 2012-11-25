@@ -100,7 +100,7 @@ class Point:
             return -1
         else:
             return 1
-    
+
     def __hash__(self):
         s = '%.6f %.6f %.6f' % (self.x, self.y, self.z)
         return hash(s)
@@ -484,26 +484,18 @@ class Layer:
         else:
             return False  
 
-    def distance(self,xi,xii,yi,yii):
-        sq1 = (xi-xii)*(xi-xii)
-        sq2 = (yi-yii)*(yi-yii)
-        return math.sqrt(sq1 + sq2)
-
     def write(self, f, global_start):
-        len = self.writeloop(f, global_start)
+        self.writeloop(f, global_start)
         #self.writechunks(f)
         print "LINE LENGTH"
-        print len
         print >> f, 'WAIT SEC 30.0'
-    
+
     def writeloop(self, f, global_start):
         count = 1
-        looplength = 0
         for loop in self.loops:
             print >> f, 'OUT[4] = TRUE'
             lastline = None
             for line in loop:
-                looplength += self.distance(line.p1.x,line.p2.x,line.p1.y,line.p2.y)
                 if lastline != None:
                     if (int(line.p1.x) != int(lastline.p2.x)) or (int(line.p1.y) != int(lastline.p2.y)) or (int(line.p1.z) != int(lastline.p2.z)):
                         print >> f, 'LIN {X '+str(int(global_start.x+line.p1.x*1000))+', Y '+str(int(global_start.y+line.p1.y*1000))+', Z '+str(int(global_start.z+line.p1.z*1000))+'} c_vel'
@@ -515,8 +507,6 @@ class Layer:
                 lastline = line
             count += 1
             print >> f, 'OUT[4] = FALSE'
-        #print >> f, '</loops>'
-        return looplength
 
     def writechunks(self, f):
         print >> f, '<chunks num="', len(self.chunks), '">'
@@ -549,6 +539,7 @@ class CadModel:
         self.old_dimension = {}
         self.scale = 1
         self.wireframe = False
+        self.path_length = 0
     
     def next_layer(self):
         n = len(self.layers)
@@ -768,17 +759,19 @@ class CadModel:
 
         print >> f, 'END'
 
+    def distance(self,xi,xii,yi,yii):
+        sq1 = (xi-xii)*(xi-xii)
+        sq2 = (yi-yii)*(yi-yii)
+        return math.sqrt(sq1 + sq2)
+
     def slice(self, para):
         self.sliced = False
         self.height = float(para["height"])/1000.0
         self.pitch = float(para["pitch"])
         self.speed = float(para["speed"])
-        #self.fast = float(para["fast"])
         self.direction = para["direction"]
-        #self.scale = float(para["scale"])
         self.global_start = Point(float(para["global_start_x"]),float(para["global_start_y"]),float(para["global_start_z"]))
         
-        #self.scale_model(self.scale)
         self.change_direction(self.direction)
         self.calc_dimension()
         self.create_layers()
@@ -787,6 +780,14 @@ class CadModel:
         if len(self.layers) > 0:
             self.sliced = True
             self.curr_layer = 0
+            self.path_length = 0
+            print "Printing layers"
+            print self.layers
+            for loop in self.layers.loops:
+                for line in loop:
+                    print "HIT"
+                    self.path_length += self.distance(line.p1.x,line.p2.x,line.p1.y,line.p2.y)
+
             return True
         else:
             self.sliced = False
@@ -862,7 +863,6 @@ class CadModel:
         print 'no of layers:', len(self.layers)                
         cpu = '%.1f' % (time.time() - start)
         print 'slice cpu', cpu,'secs'
-
     
     def create_one_layer(self, z):
         layer = Layer(z, self.pitch)
@@ -1207,27 +1207,97 @@ class DimensionPanel(wx.Panel):
         sizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
         self.SetSizer(sizer)
         
-        label = "Original"
         items = [("X", "x"), ("Y", "y"), ("Z", "z"),("Factor","factor")]
-        s1 = self.create_dimension(label, items)
+        s1 = self.create_dimension(items)
         sizer.Add(s1, 1, wx.EXPAND|wx.ALL, 2)
 
-        #label = "Scaled"
-        #items = [("X", 'newx'), ('Y', 'newy'), ('Z', 'newz')]
-        #s2 = self.create_dimension(label, items)
-        #sizer.Add(s2, 1, wx.EXPAND|wx.ALL, 2)
-
-    def create_dimension(self, label, items):
+    def create_dimension(self, items):
         sizer = wx.BoxSizer(wx.VERTICAL) 
-        caption = wx.StaticText(self, label=label)
-        sizer.Add(caption, 0, wx.ALIGN_CENTER)
 
-        flex = wx.FlexGridSizer(rows=len(items), cols=2, hgap=2, vgap=2)
+        flex = wx.FlexGridSizer(rows=len(items), cols=3, hgap=2, vgap=2)
         for label, key in items:
-            lbl_ctrl = wx.StaticText(self, label=label)
+            lbl_ctrl = wx.StaticText(self, label=label, size=(40,-1), style=wx.ALIGN_RIGHT)
             txt_ctrl = wx.TextCtrl(self, id=self.ids[label], value="", size=(70, -1), style=wx.TE_PROCESS_ENTER)
             flex.Add(lbl_ctrl)
             flex.Add(txt_ctrl, 0, wx.EXPAND)
+            if label != "Factor":
+                flex.Add(wx.StaticText(self, label="mm"))
+            else:
+                flex.Add(wx.StaticText(self, label=""))
+            self.txt_fields[key] = txt_ctrl
+
+        for i in self.ids:
+            self.Bind(wx.EVT_TEXT_ENTER, self.handlers[i], id=self.ids[i])
+
+        sizer.Add(flex, 0, wx.EXPAND)
+        flex.AddGrowableCol(1, 1)
+        return sizer
+
+    def set_values(self, dimension):
+        for key in dimension:
+            self.txt_fields[key].SetValue(dimension[key])
+
+    def update_dimension(self,factor):
+        print "Updating dimensions"
+        self.cadmodel.scale = factor
+        self.cadmodel.scale_model(factor)
+        self.cadmodel.calc_dimension()
+        self.cadmodel.set_new_dimension()
+        self.set_values(self.cadmodel.dimension)
+
+    def OnDimXChange(self, event):
+        v = float(self.txt_fields["x"].GetValue())
+        self.update_dimension(v/self.cadmodel.old_dimension["x"])
+        self.cadmodel.create_gl_model_list()
+        event.Skip()
+
+    def OnDimYChange(self, event):
+        v = float(self.txt_fields["y"].GetValue())
+        self.update_dimension(v/self.cadmodel.old_dimension["y"])
+        self.cadmodel.create_gl_model_list()
+        event.Skip()
+
+    def OnDimZChange(self, event):
+        v = float(self.txt_fields["z"].GetValue())
+        self.update_dimension(v/self.cadmodel.old_dimension["z"])
+        self.cadmodel.create_gl_model_list()
+        event.Skip()
+
+    def OnFactorChange(self, event):
+        f = float(self.txt_fields["factor"].GetValue())
+        self.update_dimension(f)
+        self.cadmodel.create_gl_model_list()
+        event.Skip()
+
+class RotatePanel(wx.Panel):
+    def __init__(self, parent, cadmodel):
+        wx.Panel.__init__(self, parent)
+        self.cadmodel = cadmodel
+        self.ids = {"X":5300,"Y":5302,"Z":5303}
+        self.handlers = {"X":self.OnDimXChange,"Y":self.OnDimYChange,"Z":self.OnDimZChange}
+        self.txt_fields = {}
+        self.create_controls()
+
+    def create_controls(self):
+        box = wx.StaticBox(self, label="Rotate") 
+        sizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
+        self.SetSizer(sizer)
+        
+        items = [("X", "x"), ("Y", "y"), ("Z", "z")]
+        s1 = self.create_dimension(items)
+        sizer.Add(s1, 1, wx.EXPAND|wx.ALL, 2)
+
+    def create_dimension(self, items):
+        sizer = wx.BoxSizer(wx.VERTICAL) 
+
+        flex = wx.FlexGridSizer(rows=len(items), cols=4, hgap=2, vgap=2)
+        for label, key in items:
+            lbl_ctrl = wx.StaticText(self, label=label, size=(20,-1), style=wx.ALIGN_RIGHT)
+            txt_ctrl = wx.TextCtrl(self, id=self.ids[label], value="", size=(70, -1), style=wx.TE_PROCESS_ENTER)
+            flex.Add(wx.Button(self, 1, '+90', size=(40,-1)))
+            flex.Add(lbl_ctrl)
+            flex.Add(txt_ctrl, 0, wx.EXPAND)
+            flex.Add(wx.StaticText(self, label="deg"))
             self.txt_fields[key] = txt_ctrl
 
         for i in self.ids:
@@ -1291,6 +1361,10 @@ class ControlPanel(wx.Panel):
         # Dimension panel
         self.dimensionPanel = DimensionPanel(self, self.cadmodel)
         sizer.Add(self.dimensionPanel, 0, wx.EXPAND|wx.ALIGN_CENTER)
+
+        # Rotate panel
+        self.rotatePanel = RotatePanel(self, self.cadmodel)
+        sizer.Add(self.rotatePanel, 0, wx.EXPAND|wx.ALIGN_CENTER)
         
         # Slice info panel
         sizer.Add((10,10)) 
@@ -1305,7 +1379,7 @@ class ControlPanel(wx.Panel):
         # Grid Size
         flex = wx.FlexGridSizer(rows=1, cols=2, hgap=2, vgap=5)
         lbl_gridsize = wx.StaticText(self, label="Grid size")
-        self.grid_size_box = wx.TextCtrl(self, value="", size=(80, -1), style=wx.TE_PROCESS_ENTER)
+        self.grid_size_box = wx.StaticText(self, label="")#wx.TextCtrl(self, value="", size=(80, -1), style=wx.TE_PROCESS_ENTER)
         flex.Add(lbl_gridsize)
         flex.Add(self.grid_size_box, 0, wx.EXPAND)
         sizer.Add(flex, 0, wx.EXPAND)
@@ -1358,9 +1432,11 @@ class ControlPanel(wx.Panel):
 
     def set_dimension(self, dimension): 
         self.dimensionPanel.set_values(dimension)
-        self.grid_size_box.SetValue(str(math.floor(self.cadmodel.old_diameter)))
+        self.grid_size_box.SetLabel(str(math.floor(self.cadmodel.old_diameter)))#SetValue(str(math.floor(self.cadmodel.old_diameter)))
 
     def set_slice_info(self, info):
+        print "set_slice_info"
+        print info
         for key in self.txt_fields.keys():
             txt = self.txt_fields[key]
             value = info.get(key, "")
@@ -1372,9 +1448,15 @@ class ControlPanel(wx.Panel):
     def set_curr_layer(self, curr_layer):
         self.txt_fields["currlayer"].SetValue(str(curr_layer))
 
+    def set_print_data(self, path_length):
+        self.txt_fields["path_length"] = str(path_length)
+        self.txt_fields["print_time"] = str(path_length/0.5)#float(self.txt_fields["speed"]))
+        self.txt_fields["material_needed"] = str(path_length*3.14)
+        self.txt_fields["print_cost"] = str(path_length*0.123)
+
 class BlackcatFrame(wx.Frame):
     def __init__(self):
-        wx.Frame.__init__(self, None, -1, "HomePrint - MIT Mediated Matter", size=(800, 600))
+        wx.Frame.__init__(self, None, -1, "HomePrint - MIT Mediated Matter", size=(800,800))
         #self.slice_parameter = {"height":"1.0", "pitch":"1.0", "speed":"10", "fast":"20", "direction":"+Z", "scale":"1"}
         self.slice_parameter = {"height":"1.0", "speed":"0.3", "pitch": "1.0", "direction":"+Z", "global_start_x":"0", "global_start_y":"0", "global_start_z":"0"}
         self.create_menubar()
@@ -1587,6 +1669,7 @@ class BlackcatFrame(wx.Frame):
             if self.cadmodel.sliced:
                 self.left_panel.set_num_layer(len(self.cadmodel.layers))
                 self.left_panel.set_curr_layer(self.cadmodel.curr_layer + 1)
+                self.left_panel.set_print_data(self.cadmodel.path_length)
             else:
                 wx.MessageBox("no layers", "Warning")
 
