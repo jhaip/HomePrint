@@ -166,6 +166,28 @@ class Facet:
         for p in self.points:
             s += str(p)
         return s
+
+    def rotate(self,axis,angle):
+        angle = math.pi*angle/180.0 #convert to radians
+        print "rotating to angle ", angle
+        if axis=="X":
+            for p in self.points:
+                op = copy.deepcopy(p)
+                p.x = op.x
+                p.y = op.y*math.cos(angle)-op.z*math.sin(angle)
+                p.z = op.y*math.sin(angle)+op.z*math.cos(angle)
+        elif axis=="Y":
+            for p in self.points:
+                op = copy.deepcopy(p)
+                p.x = op.x*math.cos(angle)+op.z*math.sin(angle)
+                p.y = op.y
+                p.z = -op.x*math.sin(angle)+op.z*math.cos(angle)
+        elif axis=="Z":
+            for p in self.points:
+                op = copy.deepcopy(p)
+                p.x = op.x*math.cos(angle)-op.y*math.sin(angle)
+                p.y = op.x*math.sin(angle)+op.y*math.cos(angle)
+                p.z = op.z
     
     def change_direction(self, direction):
         if direction == "+X":
@@ -818,6 +840,14 @@ class CadModel:
                 p.y *= factor
                 p.z *= factor
             self.facets.append(nfacet)
+
+    def rotate_model(self, axis, angle):
+        #self.facets = []
+        for facet in self.facets:
+            #nfacet = copy.deepcopy(facet)
+            #nfacet.rotate(axis,angle)
+            #self.facets.append(nfacet)
+            facet.rotate(axis,angle)
     
     def change_direction(self, direction):
         for facet in self.facets:
@@ -1273,7 +1303,7 @@ class RotatePanel(wx.Panel):
     def __init__(self, parent, cadmodel):
         wx.Panel.__init__(self, parent)
         self.cadmodel = cadmodel
-        self.ids = {"X":5300,"Y":5302,"Z":5303}
+        self.ids = {"X":6300,"Y":6302,"Z":6303}
         self.handlers = {"X":self.OnDimXChange,"Y":self.OnDimYChange,"Z":self.OnDimZChange}
         self.txt_fields = {}
         self.create_controls()
@@ -1317,30 +1347,27 @@ class RotatePanel(wx.Panel):
         self.cadmodel.scale_model(factor)
         self.cadmodel.calc_dimension()
         self.cadmodel.set_new_dimension()
-        self.set_values(self.cadmodel.dimension)
+        #self.set_values(self.cadmodel.dimension)
 
     def OnDimXChange(self, event):
         v = float(self.txt_fields["x"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["x"])
-        self.cadmodel.create_gl_model_list()
+        #self.cadmodel.create_gl_model_list()
+        self.cadmodel.rotate_model("X",v)
         event.Skip()
 
     def OnDimYChange(self, event):
         v = float(self.txt_fields["y"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["y"])
-        self.cadmodel.create_gl_model_list()
+        #self.cadmodel.create_gl_model_list()
+        self.cadmodel.rotate_model("Y",v)
         event.Skip()
 
     def OnDimZChange(self, event):
         v = float(self.txt_fields["z"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["z"])
-        self.cadmodel.create_gl_model_list()
-        event.Skip()
-
-    def OnFactorChange(self, event):
-        f = float(self.txt_fields["factor"].GetValue())
-        self.update_dimension(f)
-        self.cadmodel.create_gl_model_list()
+        #self.cadmodel.create_gl_model_list()
+        self.cadmodel.rotate_model("Z",v)
         event.Skip()
 
 class ControlPanel(wx.Panel):
@@ -1456,7 +1483,7 @@ class ControlPanel(wx.Panel):
 
 class BlackcatFrame(wx.Frame):
     def __init__(self):
-        wx.Frame.__init__(self, None, -1, "HomePrint - MIT Mediated Matter", size=(800,800))
+        wx.Frame.__init__(self, None, -1, "HomePrint - MIT Mediated Matter", size=(900,750))
         #self.slice_parameter = {"height":"1.0", "pitch":"1.0", "speed":"10", "fast":"20", "direction":"+Z", "scale":"1"}
         self.slice_parameter = {"height":"1.0", "speed":"0.3", "pitch": "1.0", "direction":"+Z", "global_start_x":"0", "global_start_y":"0", "global_start_z":"0"}
         self.create_menubar()
