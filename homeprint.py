@@ -188,27 +188,6 @@ class Facet:
                 p.y = (op.x*math.sin(angle)+op.y*math.cos(angle))*scale
                 p.z = (op.z)*scale
 
-    def change_direction(self, direction):
-        if direction == "+X":
-            for p in self.points:
-                p.x, p.z = p.z, p.x
-        elif direction == "-X":
-            for p in self.points:
-                p.x, p.z = p.z, -p.x
-        elif direction == "+Y":
-            for p in self.points:
-                p.y, p.z = p.z, p.y
-        elif direction == "-Y":
-            for p in self.points:
-                p.y, p.z = p.z, -p.y
-        elif direction == '-Z':
-            for p in self.points:
-                p.z = -p.z
-        elif direction == '+Z':
-            pass
-        else:
-            assert 0
-
     def intersect(self, z):
         L1 = [True for p in self.points if p.z > z]
         L2 = [True for p in self.points if p.z < z]
@@ -796,22 +775,20 @@ class CadModel:
         self.direction = para["direction"]
         self.global_start = Point(float(para["global_start_x"]),float(para["global_start_y"]),float(para["global_start_z"]))
         
-        self.change_direction(self.direction)
         self.calc_dimension()
         self.create_layers()
         self.set_new_dimension()
-        self.change_direction('+Z')
         if len(self.layers) > 0:
             self.sliced = True
             self.curr_layer = 0
             self.path_length = 0
             print "Printing layers"
             print self.layers
-            for loop in self.layers.loops:
-                for line in loop:
-                    print "HIT"
-                    self.path_length += self.distance(line.p1.x,line.p2.x,line.p1.y,line.p2.y)
 
+            #for loop in self.layers.loops:
+            #    for line in loop:
+            #        print "calculating path length"
+            #        self.path_length += self.distance(line.p1.x,line.p2.x,line.p1.y,line.p2.y)
             return True
         else:
             self.sliced = False
@@ -850,11 +827,6 @@ class CadModel:
             nfacet = copy.deepcopy(facet)
             nfacet.rotate_and_scale(self.scale,self.rotation_axis,self.rotation_angle)
             self.facets.append(nfacet)
-    
-    def change_direction(self, direction):
-        for facet in self.facets:
-            print "changing direction"
-            facet.change_direction(direction)
     
     def create_layers(self):
         start = time.time()
@@ -911,20 +883,20 @@ class CadModel:
         if len(lines) != 0:
             ok = layer.set_lines(lines)
             if ok:
+                print "setting lines okay"
                 return (LAYER, layer)
             else:
+                print "setting lines not okay"
                 return (ERROR, None)
         else:
+            print "no lines in layer"
             return (NOT_LAYER, None)
     
     def create_gl_model_list(self):
-        print "creating new model list"
         self.model_list_id = 1000
         glNewList(self.model_list_id, GL_COMPILE)
         if self.loaded:
-            print "model is loaded"
             for facet in self.facets:
-                print "loop"
                 if self.wireframe == False:
                     normal = facet.normal
                     glNormal3f(normal.x, normal.y, normal.z)
