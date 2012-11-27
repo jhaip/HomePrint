@@ -674,6 +674,7 @@ class CadModel:
         self.create_gl_model_list()
     
     def calc_dimension(self):
+        print "CALCULATING DIMENSIONS"
         if self.loaded:
             xlist = []
             ylist = []
@@ -827,6 +828,7 @@ class CadModel:
         self.dimension["factor"] = str(self.scale)
 
     def set_new_dimension(self):
+        print "SETTING NEW DIMENSIONS"
         self.dimension["x"] = str(self.xsize)
         self.dimension["y"] = str(self.ysize)
         self.dimension["z"] = str(self.zsize)
@@ -1424,9 +1426,6 @@ class ControlPanel(wx.Panel):
         box = wx.StaticBox(self, -1, "Slice Info")
         sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
 
-        #items = [("Layer hight", "height"), ("Pitch", "pitch"), ("Speed", "speed"), 
-        #         ("Direction", "direction"), ("Num Layers", "nolayer"),
-        #         ("Current Layer", "currlayer")]
         items = [("Layer height", "height"), ("Speed", "speed"), ("Num Layers", "nolayer"),
                  ("Current Layer", "currlayer"),("Total Length","path_length"),
                  ("Print Time","print_time"),("Material needed","material_needed"),
