@@ -167,29 +167,26 @@ class Facet:
             s += str(p)
         return s
 
-    def rotate(self,axis,angle):
+    def rotate_and_scale(self,scale,axis,angle):
         angle = math.pi*angle/180.0 #convert to radians
-        print "rotating to angle ", angle
         if axis=="X":
             for p in self.points:
                 op = copy.deepcopy(p)
-                p.x = op.x
-                p.y = op.y*math.cos(angle)-op.z*math.sin(angle)
-                p.z = op.y*math.sin(angle)+op.z*math.cos(angle)
+                p.x = (op.x)*scale
+                p.y = (op.y*math.cos(angle)-op.z*math.sin(angle))*scale
+                p.z = (op.y*math.sin(angle)+op.z*math.cos(angle))*scale
         elif axis=="Y":
             for p in self.points:
                 op = copy.deepcopy(p)
-                p.x = op.x*math.cos(angle)+op.z*math.sin(angle)
-                p.y = op.y
-                p.z = -op.x*math.sin(angle)+op.z*math.cos(angle)
+                p.x = (op.x*math.cos(angle)+op.z*math.sin(angle))*scale
+                p.y = (op.y)*scale
+                p.z = (-op.x*math.sin(angle)+op.z*math.cos(angle))*scale
         elif axis=="Z":
             for p in self.points:
                 op = copy.deepcopy(p)
-                print "OP: ", op.x, " ", op.y, " ", op.z
-                p.x = op.x*math.cos(angle)-op.y*math.sin(angle)
-                p.y = op.x*math.sin(angle)+op.y*math.cos(angle)
-                p.z = op.z
-                print "P: ", p.x, " ", p.y, " ", p.z
+                p.x = (op.x*math.cos(angle)-op.y*math.sin(angle))*scale
+                p.y = (op.x*math.sin(angle)+op.y*math.cos(angle))*scale
+                p.z = (op.z)*scale
 
     def change_direction(self, direction):
         if direction == "+X":
@@ -726,6 +723,8 @@ class CadModel:
         
         if self.loaded:
             self.scale = 1
+            self.rotation_axis = "Z"
+            self.rotation_angle = 0.0
             self.calc_dimension()
             self.logger.debug("no of facets:" + str(len(self.facets)))
             self.oldfacets = copy.deepcopy(self.facets)
@@ -834,22 +833,21 @@ class CadModel:
         self.dimension["factor"] = str(self.scale)
 
     def scale_model(self, factor):
+        self.scale = factor
         self.facets = []
         for facet in self.oldfacets:
             nfacet = copy.deepcopy(facet)
-            for p in nfacet.points:
-                p.x *= factor
-                p.y *= factor
-                p.z *= factor
+            nfacet.rotate_and_scale(self.scale,self.rotation_axis,self.rotation_angle)
             self.facets.append(nfacet)
 
     def rotate_model(self, axis, angle):
-        #self.facets = []
-        for facet in self.facets:
-            #nfacet = copy.deepcopy(facet)
-            #nfacet.rotate(axis,angle)
-            #self.facets.append(nfacet)
-            facet.rotate(axis,angle)
+        self.rotation_axis = axis
+        self.rotation_angle = angle
+        self.facets = []
+        for facet in self.oldfacets:
+            nfacet = copy.deepcopy(facet)
+            nfacet.rotate_and_scale(self.scale,self.rotation_axis,self.rotation_angle)
+            self.facets.append(nfacet)
     
     def change_direction(self, direction):
         for facet in self.facets:
@@ -918,10 +916,13 @@ class CadModel:
             return (NOT_LAYER, None)
     
     def create_gl_model_list(self):
+        print "creating new model list"
         self.model_list_id = 1000
         glNewList(self.model_list_id, GL_COMPILE)
         if self.loaded:
+            print "model is loaded"
             for facet in self.facets:
+                print "loop"
                 if self.wireframe == False:
                     normal = facet.normal
                     glNormal3f(normal.x, normal.y, normal.z)
@@ -1269,41 +1270,37 @@ class DimensionPanel(wx.Panel):
 
     def update_dimension(self,factor):
         print "Updating dimensions"
-        self.cadmodel.scale = factor
         self.cadmodel.scale_model(factor)
         self.cadmodel.calc_dimension()
         self.cadmodel.set_new_dimension()
+        self.cadmodel.create_gl_model_list()
         self.set_values(self.cadmodel.dimension)
 
     def OnDimXChange(self, event):
         v = float(self.txt_fields["x"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["x"])
-        self.cadmodel.create_gl_model_list()
         event.Skip()
 
     def OnDimYChange(self, event):
         v = float(self.txt_fields["y"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["y"])
-        self.cadmodel.create_gl_model_list()
         event.Skip()
 
     def OnDimZChange(self, event):
         v = float(self.txt_fields["z"].GetValue())
         self.update_dimension(v/self.cadmodel.old_dimension["z"])
-        self.cadmodel.create_gl_model_list()
         event.Skip()
 
     def OnFactorChange(self, event):
         f = float(self.txt_fields["factor"].GetValue())
         self.update_dimension(f)
-        self.cadmodel.create_gl_model_list()
         event.Skip()
 
 class RotatePanel(wx.Panel):
     def __init__(self, parent, cadmodel):
         wx.Panel.__init__(self, parent)
         self.cadmodel = cadmodel
-        self.ids = {"X":6300,"Y":6302,"Z":6303}
+        self.ids = {"X":6310,"Y":6312,"Z":6313}
         self.handlers = {"X":self.OnDimXChange,"Y":self.OnDimYChange,"Z":self.OnDimZChange}
         self.txt_fields = {}
         self.create_controls()
@@ -1320,14 +1317,14 @@ class RotatePanel(wx.Panel):
     def create_dimension(self, items):
         sizer = wx.BoxSizer(wx.VERTICAL) 
 
-        flex = wx.FlexGridSizer(rows=len(items), cols=4, hgap=2, vgap=2)
+        flex = wx.FlexGridSizer(rows=len(items), cols=3, hgap=2, vgap=2)
         for label, key in items:
-            lbl_ctrl = wx.StaticText(self, label=label, size=(20,-1), style=wx.ALIGN_RIGHT)
-            txt_ctrl = wx.TextCtrl(self, id=self.ids[label], value="", size=(70, -1), style=wx.TE_PROCESS_ENTER)
-            flex.Add(wx.Button(self, 1, '+90', size=(40,-1)))
+            lbl_ctrl = wx.StaticText(self, label=label, size=(40,-1), style=wx.ALIGN_RIGHT)
+            txt_ctrl = wx.TextCtrl(self, id=self.ids[label], value="0", size=(70, -1), style=wx.TE_PROCESS_ENTER)
+            #flex.Add(wx.Button(self, 1, '+90', size=(40,-1)))
             flex.Add(lbl_ctrl)
             flex.Add(txt_ctrl, 0, wx.EXPAND)
-            flex.Add(wx.StaticText(self, label="deg"))
+            flex.Add(wx.StaticText(self, label="deg", size=(50,-1)))
             self.txt_fields[key] = txt_ctrl
 
         for i in self.ids:
@@ -1337,18 +1334,11 @@ class RotatePanel(wx.Panel):
         flex.AddGrowableCol(1, 1)
         return sizer
 
-    def set_values(self, dimension):
-        for key in dimension:
-            self.txt_fields[key].SetValue(dimension[key])
-
     def update_dimension(self,axis,angle):
         print "Updating Rotation"
-        #self.cadmodel.scale = factor
         self.cadmodel.rotate_model(axis,angle)
         self.cadmodel.calc_dimension()
         self.cadmodel.set_new_dimension()
-        self.cadmodel.create_gl_model_list()
-        #self.set_values(self.cadmodel.dimension) #PUT BACKKKK
         self.cadmodel.create_gl_model_list()
 
     def OnDimXChange(self, event):
@@ -1562,7 +1552,7 @@ class BlackcatFrame(wx.Frame):
         self.path_panel.SetSizer(sizer)
 
         self.sp.Initialize(self.model_panel)
-        self.sp.SplitVertically(self.model_panel, self.path_panel, 300)
+        self.sp.SplitVertically(self.model_panel, self.path_panel, 600)
         self.sp.SetMinimumPaneSize(20)
 
         for i in self.left_panel.dimensionPanel.ids:
