@@ -519,11 +519,11 @@ class Layer:
             for line in loop:
                 if lastline != None:
                     if (int(line.p1.x) != int(lastline.p2.x)) or (int(line.p1.y) != int(lastline.p2.y)) or (int(line.p1.z) != int(lastline.p2.z)):
-                        print >> f, 'LIN {X '+str(int(global_start.x+line.p1.x*1000))+', Y '+str(int(global_start.y+line.p1.y*1000))+', Z '+str(int(global_start.z+line.p1.z*1000))+'} c_vel'
-                    print >> f, 'LIN {X '+str(int(global_start.x+line.p2.x*1000))+', Y '+str(int(global_start.y+line.p2.y*1000))+', Z '+str(int(global_start.z+line.p2.z*1000))+'} c_vel'
+                        print >> f, 'LIN {X '+str(int(global_start.x+line.p1.x))+', Y '+str(int(global_start.y+line.p1.y))+', Z '+str(int(global_start.z+line.p1.z))+'} c_vel'
+                    print >> f, 'LIN {X '+str(int(global_start.x+line.p2.x))+', Y '+str(int(global_start.y+line.p2.y))+', Z '+str(int(global_start.z+line.p2.z))+'} c_vel'
                 else:
-                    print >> f, 'LIN {X '+str(int(global_start.x+line.p1.x*1000))+', Y '+str(int(global_start.y+line.p1.y*1000))+', Z '+str(int(global_start.z+line.p1.z*1000))+'} c_vel'
-                    print >> f, 'LIN {X '+str(int(global_start.x+line.p2.x*1000))+', Y '+str(int(global_start.y+line.p2.y*1000))+', Z '+str(int(global_start.z+line.p2.z*1000))+'} c_vel'
+                    print >> f, 'LIN {X '+str(int(global_start.x+line.p1.x))+', Y '+str(int(global_start.y+line.p1.y))+', Z '+str(int(global_start.z+line.p1.z))+'} c_vel'
+                    print >> f, 'LIN {X '+str(int(global_start.x+line.p2.x))+', Y '+str(int(global_start.y+line.p2.y))+', Z '+str(int(global_start.z+line.p2.z))+'} c_vel'
                 #writeline(line, f)
                 lastline = line
             count += 1
@@ -789,7 +789,7 @@ class CadModel:
 
     def slice(self, para):
         self.sliced = False
-        self.height = float(para["height"])/1000.0
+        self.height = float(para["height"])
         self.pitch = float(para["pitch"])
         self.speed = float(para["speed"])
         self.direction = para["direction"]
@@ -1427,17 +1427,22 @@ class ControlPanel(wx.Panel):
         #items = [("Layer hight", "height"), ("Pitch", "pitch"), ("Speed", "speed"), 
         #         ("Direction", "direction"), ("Num Layers", "nolayer"),
         #         ("Current Layer", "currlayer")]
-        items = [("Layer hight", "height"), ("Speed", "speed"), 
-                 ("Direction", "direction"), ("Num Layers", "nolayer"),
+        items = [("Layer height", "height"), ("Speed", "speed"), ("Num Layers", "nolayer"),
                  ("Current Layer", "currlayer"),("Total Length","path_length"),
                  ("Print Time","print_time"),("Material needed","material_needed"),
                  ("Cost of Print","print_cost")]
-        flex = wx.FlexGridSizer(rows=len(items), cols=2, hgap=2, vgap=2)
+        units = {"height":"mm","speed":"m/s","path_length":"mm","print_time":"min","material_needed":"lbs","print_cost":"dollars"}
+        flex = wx.FlexGridSizer(rows=len(items), cols=3, hgap=2, vgap=2)
         for label, key in items:
+            print label, key
             lbl_ctrl = wx.StaticText(self, label=label)
             txt_ctrl = wx.TextCtrl(self, size=(70, -1), style=wx.TE_READONLY)
             flex.Add(lbl_ctrl)
             flex.Add(txt_ctrl, 0, wx.EXPAND)
+            if key in units:
+                flex.Add(wx.StaticText(self, label=units[key]))
+            else:
+                flex.Add(wx.StaticText(self, label=" "))
             self.txt_fields[key] = txt_ctrl
         flex.AddGrowableCol(1, 1)
         sizer.Add(flex, 1, wx.EXPAND|wx.ALL, 2)
