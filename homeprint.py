@@ -493,7 +493,6 @@ class Layer:
         self.writeloop(f, global_start)
         #self.writechunks(f)
         print "LINE LENGTH"
-        print >> f, 'WAIT SEC 30.0'
 
     def writeloop(self, f, global_start):
         count = 1
@@ -759,12 +758,13 @@ class CadModel:
         print >> f, '$VEL_AXIS[6]=20'
 
         print >> f, ''
-        print >> f, '$vel.cp= '+str(self.slice_para["print_speed"])
-        print >> f, '$apo.cvel= 95'
+        print >> f, '$vel.cp=', "%.2f" % self.slice_para["print_speed"]
+        print >> f, '$apo.cvel=', int(self.slice_para["path_strictness"])
         print >> f, ''
 
         for layer in self.layers:
             layer.write(f, self.slice_para["global_start"])
+            print >> f, 'WAIT SEC', "%.1f" % self.slice_para["layer_wait"]
 
         print >> f, 'END'
 
@@ -1606,11 +1606,11 @@ class BlackcatFrame(wx.Frame):
 
     def OnAbout(self, event):
         info = wx.AboutDialogInfo()
-        info.Name = "Blackcat"
-        info.Version = "0.1"
-        info.Copyright = "(C) 2009"
-        info.Description = "Slice stl CAD model"
-        info.Developers = ["Zhigang Liu"]
+        info.Name = "HomePrint"
+        info.Version = "1.0"
+        info.Copyright = "(C) 2012"
+        info.Description = "Tool used to break down a .STL model and to output code for 3D printing on a KUDA robotic arm.\nBased on Blackcat project by Zhigang Liu."
+        info.Developers = ["Jacob Haip - Mediated Matter"]
         info.License = "GPL2"
         wx.AboutBox(info)
 
