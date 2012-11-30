@@ -758,7 +758,7 @@ class CadModel:
         print >> f, '$VEL_AXIS[6]=20'
 
         print >> f, ''
-        print >> f, '$vel.cp= '+str(self.speed)
+        print >> f, '$vel.cp= '+str(self.print_speed)
         print >> f, '$apo.cvel= 95'
         print >> f, ''
 
@@ -769,11 +769,10 @@ class CadModel:
 
     def slice(self, para):
         self.sliced = False
-        self.height = float(para["height"])
-        self.pitch = float(para["pitch"])
-        self.speed = float(para["speed"])
-        self.direction = para["direction"]
-        self.global_start = Point(float(para["global_start_x"]),float(para["global_start_y"]),float(para["global_start_z"]))
+        #self.height = float(para["height"])
+        #self.pitch = float(para["pitch"])
+        #self.print_speed = float(para["speed"])
+        #self.global_start = Point(float(para["global_start_x"]),float(para["global_start_y"]),float(para["global_start_z"]))
         
         self.calc_dimension()
         self.create_layers()
@@ -786,6 +785,13 @@ class CadModel:
         else:
             self.sliced = False
             return False
+
+    def set_slice_parameters(self, para):
+        self.height = para["layer_height"]
+        self.print_speed = para["print_speed"]
+        self.global_start = Point(float(para["global_start_x"]),float(para["global_start_y"]),float(para["global_start_z"]))
+        self.pitch = para["slice_pitch"]
+        print "slice parameters set"
     
     def set_old_dimension(self):
         self.old_dimension["x"] = self.xsize
@@ -1380,17 +1386,6 @@ class ControlPanel(wx.Panel):
         # sb = wx.StaticBitmap(self, -1, wx.BitmapFromImage(img), style=wx.RAISED_BORDER)
         # sizer.Add(sb, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
-    #def OnSelect(self, event):
-    #    item = event.GetSelection()
-    #    axis = ['+X', '-X', '+Y', '-Y', '+Z', '-Z']
-    #    print "ON SELECT EVENT"
-    #    print axis[item]
-    #    print "THAT's WHAT HAPPENED"
-    #    self.cadmodel.direction = axis[item]
-    #    self.cadmodel.change_direction(axis[item])
-    #    self.cadmodel.calc_dimension()
-    #    self.cadmodel.set_new_dimension()
-
     def create_slice_info(self):
         self.txt_fields = {}
         box = wx.StaticBox(self, -1, "Slice Info")
@@ -1447,8 +1442,27 @@ class ControlPanel(wx.Panel):
 class BlackcatFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, "HomePrint - MIT Mediated Matter", size=(900,750))
-        #self.slice_parameter = {"height":"1.0", "pitch":"1.0", "speed":"10", "fast":"20", "direction":"+Z", "scale":"1"}
-        self.slice_parameter = {"height":"1.0", "speed":"0.3", "pitch": "1.0", "direction":"+Z", "global_start_x":"0", "global_start_y":"0", "global_start_z":"0"}
+        self.slice_parameter = {"height":"1.0", "speed":"0.3", "pitch": "1.0", "global_start_x":"0", "global_start_y":"0", "global_start_z":"0"}
+        self.options = {"global_start_x":["Global Start X","mm"],
+                      "global_start_y":["Global Start Y","mm"],
+                      "global_start_z":["Global Start Z","mm"],
+                      "layer_wait":["Layer Wait Time","sec"],
+                      "path_strictness":["Path Strictness (0-1)",""],
+                      "material_cost":["Material Cost","$/in^3"],
+                      "layer_height":["Layer Height","mm"],
+                      "layer_width":["Layer Width:","mm"],
+                      "print_speed":["Print Speed:","m/sec"],
+                      "slice_pitch":["Slice Pitch:",""]}
+        self.options_values = {"global_start_x":0,
+                              "global_start_y":0,
+                              "global_start_z":0,
+                              "layer_wait":30,
+                              "path_strictness":95,
+                              "material_cost":0.5,
+                              "layer_height":1.0,
+                              "layer_width":2.0,
+                              "print_speed":0.3,
+                              "slice_pitch":1}
         self.create_menubar()
         self.create_toolbar()
         self.cadmodel = CadModel()
@@ -1604,10 +1618,13 @@ class BlackcatFrame(wx.Frame):
         self.model_panel.Refresh(False)
 
     def OnSettings(self, event):
-        dlg = OptionsDialog(self)
+        dlg = OptionsDialog(self, self.options, self.options_values)
         if dlg.ShowModal() == wx.ID_OK:
-            return True
-        return False
+            self.options_values = dlg.get_values()
+            print "setting options values in frame"
+            if self.cadmodel.loaded:
+                self.cadmodel.set_slice_parameters(self.options_values)
+        dlg.Destroy()
 
     def OnOpen(self, event):
         wildcard = "CAD std files (*.stl)|*.stl|All files (*.*)|*.*"
@@ -1622,6 +1639,8 @@ class BlackcatFrame(wx.Frame):
                 self.path_canvas.Refresh()
                 self.left_panel.set_dimension(self.cadmodel.dimension)
                 self.left_panel.set_rotation()
+                self.cadmodel.set_slice_parameters(self.options_values)
+
                 basename = os.path.basename(path)
                 root, ext = os.path.splitext(basename)
                 self.cadname = root
@@ -1634,9 +1653,9 @@ class BlackcatFrame(wx.Frame):
             wx.MessageBox("load a CAD model first", "warning")
             return
 
-        dlg = ParaDialog(self, self.slice_parameter)
-        result = dlg.ShowModal()
-        if result == wx.ID_OK:
+        #dlg = ParaDialog(self, self.slice_parameter)
+        #result = dlg.ShowModal()
+        if True:#result == wx.ID_OK:
             #dlg.get_values()
             print 'slicing...'
             self.cadmodel.queue = Queue.Queue()
@@ -1678,7 +1697,7 @@ class BlackcatFrame(wx.Frame):
             else:
                 wx.MessageBox("no layers", "Warning")
 
-        dlg.Destroy()
+        #dlg.Destroy()
 
     def OnQuit(self, event):
         self.Close() 
@@ -1766,45 +1785,47 @@ class SlicePanel(wx.Panel):
         self.SetSizer(outsizer)
 
 class OptionsPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, options, default_values):
         wx.Panel.__init__(self, parent, -1)
-        self.items = {"global_start_x":["Global Start X","mm","0"],
-                      "global_start_y":["Global Start Y","mm","0"],
-                      "global_start_z":["Global Start Z","mm","0"],
-                      "layer_wait":["Layer Wait Time","sec","30"],
-                      "path_strictness":["Path Strictness (0-1)","","95"],
-                      "material_cost":["Material Cost","$/in^3","0.50"],
-                      "layer_height":["Layer Height","mm","50"],
-                      "layer_width":["Layer Width:","mm","50"]}
+        self.options = options
+        self.default_values = default_values
+        self.text_fields = {}
         self.create()
 
     def create(self):
         outsizer = wx.BoxSizer(wx.VERTICAL)
         sizer = wx.BoxSizer(wx.VERTICAL)
         outsizer.Add(sizer, 0, wx.ALL, 10)
-        box = wx.FlexGridSizer(rows=len(self.items), cols=3, hgap=5, vgap=5)
-        for name in self.items:
-            lbl = wx.StaticText(self, label=self.items[name][0])
+        box = wx.FlexGridSizer(rows=len(self.options), cols=3, hgap=5, vgap=5)
+        for option in self.options:
+            lbl = wx.StaticText(self, label=self.options[option][0])
             box.Add(lbl, 0, 0)
-            txt = wx.TextCtrl(self, -1, self.items[name][2], size=(80, -1))
+            txt = wx.TextCtrl(self, -1, str(self.default_values[option]), size=(80, -1))
             box.Add(txt, 0, 0)
-            lbl = wx.StaticText(self, label=self.items[name][1])
+            lbl = wx.StaticText(self, label=self.options[option][1])
             box.Add(lbl, 0, 0)
+            self.text_fields[option] = txt
         sizer.Add(box, 0, 0)
 
         self.SetSizer(outsizer)
 
+    def get_values(self):
+        values = {}
+        for option in self.options:
+            values[option] = float(self.text_fields[option].GetValue())
+        return values
+
 class OptionsDialog(wx.Dialog):
-    def __init__(self, parent):
+    def __init__(self, parent, options, default_values):
         pre = wx.PreDialog()
         #pre.SetExtraStyle(wx.WS_EX_VALIDATE_RECURSIVELY)
         pre.Create(parent, -1, "Preferences")
         self.PostCreate(pre)
-        self.create_controls()
+        self.create_controls(options,default_values)
 
-    def create_controls(self):
+    def create_controls(self,options,default_values):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        self.panel = OptionsPanel(self)
+        self.panel = OptionsPanel(self, options, default_values)
         sizer.Add(self.panel, 0, 0)
         sizer.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
         
@@ -1821,6 +1842,9 @@ class OptionsDialog(wx.Dialog):
 
         self.SetSizer(sizer)
         self.Fit()
+
+    def get_values(self):
+        return self.panel.get_values()
 
 class ParaDialog(wx.Dialog):
     def __init__(self, parent, slice_parameter):
