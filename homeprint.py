@@ -1439,7 +1439,7 @@ class ControlPanel(wx.Panel):
         self.txt_fields["currlayer"].SetValue(str(curr_layer))
 
     def set_print_data(self, path_length):
-        print_time_val = path_length*0.001*self.cadmodel.slice_para["print_speed"]
+        print_time_val = path_length*0.001/self.cadmodel.slice_para["print_speed"]
         material_needed_val = path_length*self.cadmodel.slice_para["layer_width"]*self.cadmodel.slice_para["layer_height"]
         print_cost_val = material_needed_val * self.cadmodel.slice_para["material_cost"]
         self.txt_fields["path_length"].SetValue('%.2f' % path_length)
