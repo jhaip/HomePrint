@@ -545,6 +545,7 @@ class CadModel:
         self.scale = 1
         self.wireframe = False
         self.path_length = 0
+        self.slice_para = {}
     
     def next_layer(self):
         n = len(self.layers)
@@ -758,12 +759,12 @@ class CadModel:
         print >> f, '$VEL_AXIS[6]=20'
 
         print >> f, ''
-        print >> f, '$vel.cp= '+str(self.print_speed)
+        print >> f, '$vel.cp= '+str(self.slice_para["print_speed"])
         print >> f, '$apo.cvel= 95'
         print >> f, ''
 
         for layer in self.layers:
-            layer.write(f, self.global_start)
+            layer.write(f, self.slice_para["global_start"])
 
         print >> f, 'END'
 
@@ -787,10 +788,18 @@ class CadModel:
             return False
 
     def set_slice_parameters(self, para):
-        self.height = para["layer_height"]
-        self.print_speed = para["print_speed"]
-        self.global_start = Point(float(para["global_start_x"]),float(para["global_start_y"]),float(para["global_start_z"]))
-        self.pitch = para["slice_pitch"]
+        # self.height
+        # self.print_speed
+        # self.global_start
+        # pitch
+        self.slice_para["layer_height"] = para["layer_height"]
+        self.slice_para["layer_width"] = para["layer_width"]
+        self.slice_para["print_speed"] = para["print_speed"]
+        self.slice_para["global_start"] = Point(float(para["global_start_x"]),float(para["global_start_y"]),float(para["global_start_z"]))
+        self.slice_para["pitch"] = para["slice_pitch"]
+        self.slice_para["layer_wait"] = para["layer_wait"]
+        self.slice_para["path_strictness"] = para["path_strictness"]
+        self.slice_para["material_cost"] = para["material_cost"]
         print "slice parameters set"
     
     def set_old_dimension(self):
@@ -830,11 +839,11 @@ class CadModel:
     def create_layers(self):
         start = time.time()
         self.layers = []
-        z = self.minz + self.height
+        z = self.minz + self.slice_para["layer_height"]
         lastz = self.minz
         count = 0
 
-        no = (self.maxz - self.minz) / self.height
+        no = (self.maxz - self.minz) / self.slice_para["layer_height"]
         no = int(no)
         self.queue.put(no)
         while z >= self.minz and z <= self.maxz:
@@ -846,20 +855,20 @@ class CadModel:
                 self.layers.append(layer)
                 
                 lastz = z
-                z += self.height
+                z += self.slice_para["layer_height"]
                 self.queue.put(count)
                 print 'layer', count, '/', no
             elif code == ERROR:
                 print 'layer error'
                 break
             elif code == REDO:
-                z = z - self.height * 0.01
+                z = z - self.slice_para["layer_height"] * 0.01
                 if z < lastz:
                     break
                 print 'recreate layer'
             elif code == NOT_LAYER:
                 lastz = z
-                z += self.height
+                z += self.slice_para["layer_height"]
                 print 'not layer'
            
         self.queue.put("done")                
@@ -868,7 +877,7 @@ class CadModel:
         print 'slice cpu', cpu,'secs'
     
     def create_one_layer(self, z):
-        layer = Layer(z, self.pitch)
+        layer = Layer(z, self.slice_para["pitch"])
         lines = []
         for facet in self.facets:
             print 'facet check'
@@ -1395,10 +1404,9 @@ class ControlPanel(wx.Panel):
                  ("Current Layer", "currlayer"),("Total Length","path_length"),
                  ("Print Time","print_time"),("Material needed","material_needed"),
                  ("Cost of Print","print_cost")]
-        units = {"height":"mm","speed":"m/s","path_length":"mm","print_time":"min","material_needed":"lbs","print_cost":"dollars"}
+        units = {"height":"mm","speed":"m/s","path_length":"mm","print_time":"sec","material_needed":"mm^3","print_cost":"dollars"}
         flex = wx.FlexGridSizer(rows=len(items), cols=3, hgap=2, vgap=2)
         for label, key in items:
-            print label, key
             lbl_ctrl = wx.StaticText(self, label=label)
             txt_ctrl = wx.TextCtrl(self, size=(70, -1), style=wx.TE_READONLY)
             flex.Add(lbl_ctrl)
@@ -1414,7 +1422,7 @@ class ControlPanel(wx.Panel):
 
     def set_dimension(self, dimension): 
         self.dimensionPanel.set_values(dimension)
-        self.grid_size_box.SetLabel(str(math.floor(self.cadmodel.old_diameter)))#SetValue(str(math.floor(self.cadmodel.old_diameter)))
+        self.grid_size_box.SetLabel(str(math.floor(self.cadmodel.old_diameter)))
 
     def set_rotation(self):
         self.rotatePanel.reset_values()
@@ -1434,10 +1442,13 @@ class ControlPanel(wx.Panel):
         self.txt_fields["currlayer"].SetValue(str(curr_layer))
 
     def set_print_data(self, path_length):
-        self.txt_fields["path_length"].SetValue(str(path_length))
-        self.txt_fields["print_time"].SetValue(str(path_length/float(self.txt_fields["speed"].GetValue())))
-        self.txt_fields["material_needed"].SetValue(str(path_length*3.14))
-        self.txt_fields["print_cost"].SetValue(str(path_length*0.123))
+        print_time_val = path_length*0.001*self.cadmodel.slice_para["print_speed"]
+        material_needed_val = path_length*self.cadmodel.slice_para["layer_width"]*self.cadmodel.slice_para["layer_height"]
+        print_cost_val = material_needed_val * self.cadmodel.slice_para["material_cost"]
+        self.txt_fields["path_length"].SetValue('%.2f' % path_length)
+        self.txt_fields["print_time"].SetValue('%.2f' % print_time_val)
+        self.txt_fields["material_needed"].SetValue('%.2f' % material_needed_val)
+        self.txt_fields["print_cost"].SetValue('%.2f' % print_cost_val)
 
 class BlackcatFrame(wx.Frame):
     def __init__(self):
@@ -1448,7 +1459,7 @@ class BlackcatFrame(wx.Frame):
                       "global_start_z":["Global Start Z","mm"],
                       "layer_wait":["Layer Wait Time","sec"],
                       "path_strictness":["Path Strictness (0-1)",""],
-                      "material_cost":["Material Cost","$/in^3"],
+                      "material_cost":["Material Cost","$/mm^3"],
                       "layer_height":["Layer Height","mm"],
                       "layer_width":["Layer Width:","mm"],
                       "print_speed":["Print Speed:","m/sec"],
@@ -1458,7 +1469,7 @@ class BlackcatFrame(wx.Frame):
                               "global_start_z":0,
                               "layer_wait":30,
                               "path_strictness":95,
-                              "material_cost":0.5,
+                              "material_cost":0.23,
                               "layer_height":1.0,
                               "layer_width":2.0,
                               "print_speed":0.3,
@@ -1653,51 +1664,43 @@ class BlackcatFrame(wx.Frame):
             wx.MessageBox("load a CAD model first", "warning")
             return
 
-        #dlg = ParaDialog(self, self.slice_parameter)
-        #result = dlg.ShowModal()
-        if True:#result == wx.ID_OK:
-            #dlg.get_values()
-            print 'slicing...'
-            self.cadmodel.queue = Queue.Queue()
-            thread.start_new_thread(self.cadmodel.slice, (self.slice_parameter,))
-            num_layers = self.cadmodel.queue.get()
-            if num_layers > 0:
-                pdlg = wx.ProgressDialog("Slicing in progress", "Progress", 
-                                         num_layers, 
-                                         style=wx.PD_ELAPSED_TIME|
-                                               wx.PD_REMAINING_TIME|
-                                               wx.PD_AUTO_HIDE|wx.PD_APP_MODAL)
-            
-                while True:
-                    count = self.cadmodel.queue.get()
-                    if count == 'done':
-                        count = num_layers
-                        pdlg.Update(count)
-                        break
-                    else:
-                        pdlg.Update(count)
-                pdlg.Destroy()
-            
-            self.model_canvas.create_model()
-            #self.left_panel.set_dimension(self.cadmodel.dimension)
-            self.left_panel.set_slice_info(self.slice_parameter)
-            self.path_canvas.Refresh()
+        print 'slicing...'
+        self.cadmodel.queue = Queue.Queue()
+        thread.start_new_thread(self.cadmodel.slice, (self.slice_parameter,))
+        num_layers = self.cadmodel.queue.get()
+        if num_layers > 0:
+            pdlg = wx.ProgressDialog("Slicing in progress", "Progress", 
+                                     num_layers, 
+                                     style=wx.PD_ELAPSED_TIME|
+                                           wx.PD_REMAINING_TIME|
+                                           wx.PD_AUTO_HIDE|wx.PD_APP_MODAL)
+        
+            while True:
+                count = self.cadmodel.queue.get()
+                if count == 'done':
+                    count = num_layers
+                    pdlg.Update(count)
+                    break
+                else:
+                    pdlg.Update(count)
+            pdlg.Destroy()
+        
+        self.model_canvas.create_model()
+        self.left_panel.set_slice_info(self.slice_parameter)
+        self.path_canvas.Refresh()
 
-            if self.cadmodel.sliced:
-                print "-------------------------------"
-                path_length = 0
-                for layer in self.cadmodel.layers:
-                    for loop in layer.loops:
-                        for line in loop:
-                            path_length += distance(line.p1.x,line.p2.x,line.p1.y,line.p2.y)
-                print "Path Length ::::::: ", path_length
-                self.left_panel.set_num_layer(len(self.cadmodel.layers))
-                self.left_panel.set_curr_layer(self.cadmodel.curr_layer + 1)
-                self.left_panel.set_print_data(path_length)
-            else:
-                wx.MessageBox("no layers", "Warning")
-
-        #dlg.Destroy()
+        if self.cadmodel.sliced:
+            print "-------------------------------"
+            path_length = 0
+            for layer in self.cadmodel.layers:
+                for loop in layer.loops:
+                    for line in loop:
+                        path_length += distance(line.p1.x,line.p2.x,line.p1.y,line.p2.y)
+            self.left_panel.set_num_layer(len(self.cadmodel.layers))
+            self.left_panel.set_curr_layer(self.cadmodel.curr_layer + 1)
+            self.left_panel.set_print_data(path_length)
+        else:
+            wx.MessageBox("no layers", "Warning")
 
     def OnQuit(self, event):
         self.Close() 
