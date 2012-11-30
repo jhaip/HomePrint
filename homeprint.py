@@ -1281,6 +1281,11 @@ class RotatePanel(wx.Panel):
         s1 = self.create_dimension(items)
         sizer.Add(s1, 1, wx.EXPAND|wx.ALL, 2)
 
+    def reset_values(self):
+        self.txt_fields["x"].SetValue("0")
+        self.txt_fields["y"].SetValue("0")
+        self.txt_fields["z"].SetValue("0")
+
     def create_dimension(self, items):
         sizer = wx.BoxSizer(wx.VERTICAL) 
 
@@ -1415,6 +1420,9 @@ class ControlPanel(wx.Panel):
     def set_dimension(self, dimension): 
         self.dimensionPanel.set_values(dimension)
         self.grid_size_box.SetLabel(str(math.floor(self.cadmodel.old_diameter)))#SetValue(str(math.floor(self.cadmodel.old_diameter)))
+
+    def set_rotation(self):
+        self.rotatePanel.reset_values()
 
     def set_slice_info(self, info):
         print "set_slice_info"
@@ -1606,6 +1614,7 @@ class BlackcatFrame(wx.Frame):
                 self.model_canvas.create_model()
                 self.path_canvas.Refresh()
                 self.left_panel.set_dimension(self.cadmodel.dimension)
+                self.left_panel.set_rotation()
                 basename = os.path.basename(path)
                 root, ext = os.path.splitext(basename)
                 self.cadname = root
@@ -1766,7 +1775,6 @@ class ParaDialog(wx.Dialog):
         sizer.Add(self.panel, 0, 0)
         sizer.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
         
-        #
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.Add((10, 10), 1)
         ok_btn = wx.Button(self, wx.ID_OK)
