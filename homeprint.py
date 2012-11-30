@@ -1555,12 +1555,13 @@ class BlackcatFrame(wx.Frame):
     def menu_data(self):
         return (("&File", ("&Open\tCtrl+o", "Open CAD file", self.OnOpen, wx.ID_OPEN),
                           ("S&lice\tCtrl+l", "Slice CAD model", self.OnSlice, -1),
-                          ("&Save\tCtrl+s", "Save slice result as .src file", self.OnSave, wx.ID_SAVE),  
+                          ("&Save\tCtrl+s", "Save slice result as .src file", self.OnSave, wx.ID_SAVE),
+                          ("Settings", "Toggle wireframe view", self.OnSettings, -1),
                           ("", "", "", ""),
                          ("&Quit\tCtrl+q", "Quit", self.OnQuit, wx.ID_EXIT)),
                 ("Edit", ("Next Layer\tpgdn", "next layer", self.OnNextLayer, -1),
                          ("Prev Layer\tpgup", "previous layer", self.OnPrevLayer, -1),
-                         ("Wireframe\tCtrl+w", "Toggle wireframe view", self.OnWireframe, -1)),
+                         ("Wireframe", "Toggle wireframe view", self.OnWireframe, -1)),
                 ("&Help", ("&About", "About this program", self.OnAbout, wx.ID_ABOUT))
                  )
     
@@ -1601,6 +1602,12 @@ class BlackcatFrame(wx.Frame):
     def OnWireframe(self, event):
         self.cadmodel.toggle_wireframe()
         self.model_panel.Refresh(False)
+
+    def OnSettings(self, event):
+        dlg = OptionsDialog(self)
+        if dlg.ShowModal() == wx.ID_OK:
+            return True
+        return False
 
     def OnOpen(self, event):
         wildcard = "CAD std files (*.stl)|*.stl|All files (*.*)|*.*"
@@ -1761,30 +1768,59 @@ class SlicePanel(wx.Panel):
 class OptionsPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, -1)
-        self.items = {"global_start_x":["Global Start X","mm"],
-                      "global_start_y":["Global Start Y","mm"],
-                      "global_start_z":["Global Start Z","mm"],
-                      "layer_wait":["Layer Wait Time","sec"],
-                      "path_strictness":["Path Strictness (0-1)",""],
-                      "global_start_x":["Global Start X","mm"],,
-                      "material_cost":["Material Cost","$/in^3"],
-                      "layer_height":["Layer Height","mm"],
-                      "layer_width":["Layer Width:","mm"]}
+        self.items = {"global_start_x":["Global Start X","mm","0"],
+                      "global_start_y":["Global Start Y","mm","0"],
+                      "global_start_z":["Global Start Z","mm","0"],
+                      "layer_wait":["Layer Wait Time","sec","30"],
+                      "path_strictness":["Path Strictness (0-1)","","95"],
+                      "material_cost":["Material Cost","$/in^3","0.50"],
+                      "layer_height":["Layer Height","mm","50"],
+                      "layer_width":["Layer Width:","mm","50"]}
         self.create()
 
     def create(self):
         outsizer = wx.BoxSizer(wx.VERTICAL)
         sizer = wx.BoxSizer(wx.VERTICAL)
         outsizer.Add(sizer, 0, wx.ALL, 10)
-        box = wx.FlexGridSizer(rows=3, cols=2, hgap=5, vgap=5)
-        for label, dvalue, key in labels:
-            lbl = wx.StaticText(self, label=label)
+        box = wx.FlexGridSizer(rows=len(self.items), cols=3, hgap=5, vgap=5)
+        for name in self.items:
+            lbl = wx.StaticText(self, label=self.items[name][0])
             box.Add(lbl, 0, 0)
-            txt = wx.TextCtrl(self, -1, dvalue, size=(80, -1), validator=CharValidator(self.data, key))
+            txt = wx.TextCtrl(self, -1, self.items[name][2], size=(80, -1))
             box.Add(txt, 0, 0)
+            lbl = wx.StaticText(self, label=self.items[name][1])
+            box.Add(lbl, 0, 0)
         sizer.Add(box, 0, 0)
 
         self.SetSizer(outsizer)
+
+class OptionsDialog(wx.Dialog):
+    def __init__(self, parent):
+        pre = wx.PreDialog()
+        #pre.SetExtraStyle(wx.WS_EX_VALIDATE_RECURSIVELY)
+        pre.Create(parent, -1, "Preferences")
+        self.PostCreate(pre)
+        self.create_controls()
+
+    def create_controls(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.panel = OptionsPanel(self)
+        sizer.Add(self.panel, 0, 0)
+        sizer.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+        
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.Add((10, 10), 1)
+        ok_btn = wx.Button(self, wx.ID_OK)
+        ok_btn.SetDefault()
+        cancel_btn = wx.Button(self, wx.ID_CANCEL, "Cancel")
+        btn_sizer.Add(ok_btn)
+        btn_sizer.Add((10,10), 1)
+        btn_sizer.Add(cancel_btn)
+        btn_sizer.Add((10,10), 1)
+        sizer.Add(btn_sizer, 0, wx.EXPAND|wx.ALL, 10)
+
+        self.SetSizer(sizer)
+        self.Fit()
 
 class ParaDialog(wx.Dialog):
     def __init__(self, parent, slice_parameter):
