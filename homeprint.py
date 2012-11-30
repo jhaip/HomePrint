@@ -762,18 +762,18 @@ class CadModel:
         print >> f, '$apo.cvel=', int(self.slice_para["path_strictness"])
         print >> f, ''
 
+        np = Point()
+        np.x = self.slice_para["global_start"].x + self.slice_para["tool_offset"].x
+        np.y = self.slice_para["global_start"].y + self.slice_para["tool_offset"].y
+        np.z = self.slice_para["global_start"].z + self.slice_para["tool_offset"].z
         for layer in self.layers:
-            layer.write(f, self.slice_para["global_start"])
+            layer.write(f, np)
             print >> f, 'WAIT SEC', "%.1f" % self.slice_para["layer_wait"]
 
         print >> f, 'END'
 
     def slice(self, para):
         self.sliced = False
-        #self.height = float(para["height"])
-        #self.pitch = float(para["pitch"])
-        #self.print_speed = float(para["speed"])
-        #self.global_start = Point(float(para["global_start_x"]),float(para["global_start_y"]),float(para["global_start_z"]))
         
         self.calc_dimension()
         self.create_layers()
@@ -788,10 +788,6 @@ class CadModel:
             return False
 
     def set_slice_parameters(self, para):
-        # self.height
-        # self.print_speed
-        # self.global_start
-        # pitch
         self.slice_para["layer_height"] = para["layer_height"]
         self.slice_para["layer_width"] = para["layer_width"]
         self.slice_para["print_speed"] = para["print_speed"]
@@ -800,6 +796,7 @@ class CadModel:
         self.slice_para["layer_wait"] = para["layer_wait"]
         self.slice_para["path_strictness"] = para["path_strictness"]
         self.slice_para["material_cost"] = para["material_cost"]
+        self.slice_para["tool_offset"] = Point(float(para["tool_offset_x"]),float(para["tool_offset_y"]),float(para["tool_offset_z"]))
         print "slice parameters set"
     
     def set_old_dimension(self):
@@ -1463,7 +1460,10 @@ class BlackcatFrame(wx.Frame):
                       "layer_height":["Layer Height","mm"],
                       "layer_width":["Layer Width:","mm"],
                       "print_speed":["Print Speed:","m/sec"],
-                      "slice_pitch":["Slice Pitch:",""]}
+                      "slice_pitch":["Slice Pitch:",""],
+                      "tool_offset_x":["Tool Offset X:","mm"],
+                      "tool_offset_y":["Tool Offset Y:","mm"],
+                      "tool_offset_z":["Tool Offset Z:","mm"]}
         self.options_values = {"global_start_x":0,
                               "global_start_y":0,
                               "global_start_z":0,
@@ -1473,7 +1473,10 @@ class BlackcatFrame(wx.Frame):
                               "layer_height":1.0,
                               "layer_width":2.0,
                               "print_speed":0.3,
-                              "slice_pitch":1}
+                              "slice_pitch":1,
+                              "tool_offset_x":0,
+                              "tool_offset_y":0,
+                              "tool_offset_z":0}
         self.create_menubar()
         self.create_toolbar()
         self.cadmodel = CadModel()
