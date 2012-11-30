@@ -155,6 +155,11 @@ def calc_intersected_point(p1, p2, z):
     p = Point(x, y, z)
     return p
 
+def distance(xi,xii,yi,yii):
+    sq1 = (xi-xii)*(xi-xii)
+    sq2 = (yi-yii)*(yi-yii)
+    return math.sqrt(sq1 + sq2)
+
 class Facet:
     def __init__(self):
         self.normal = Point()
@@ -762,11 +767,6 @@ class CadModel:
 
         print >> f, 'END'
 
-    def distance(self,xi,xii,yi,yii):
-        sq1 = (xi-xii)*(xi-xii)
-        sq2 = (yi-yii)*(yi-yii)
-        return math.sqrt(sq1 + sq2)
-
     def slice(self, para):
         self.sliced = False
         self.height = float(para["height"])
@@ -782,13 +782,6 @@ class CadModel:
             self.sliced = True
             self.curr_layer = 0
             self.path_length = 0
-            print "Printing layers"
-            print self.layers
-
-            #for loop in self.layers.loops:
-            #    for line in loop:
-            #        print "calculating path length"
-            #        self.path_length += self.distance(line.p1.x,line.p2.x,line.p1.y,line.p2.y)
             return True
         else:
             self.sliced = False
@@ -840,7 +833,7 @@ class CadModel:
         self.queue.put(no)
         while z >= self.minz and z <= self.maxz:
             code, layer = self.create_one_layer(z)
-            
+
             if code == LAYER:
                 count += 1
                 layer.id = count
@@ -1438,10 +1431,10 @@ class ControlPanel(wx.Panel):
         self.txt_fields["currlayer"].SetValue(str(curr_layer))
 
     def set_print_data(self, path_length):
-        self.txt_fields["path_length"] = str(path_length)
-        self.txt_fields["print_time"] = str(path_length/0.5)#float(self.txt_fields["speed"]))
-        self.txt_fields["material_needed"] = str(path_length*3.14)
-        self.txt_fields["print_cost"] = str(path_length*0.123)
+        self.txt_fields["path_length"].SetValue(str(path_length))
+        self.txt_fields["print_time"].SetValue(str(path_length/float(self.txt_fields["speed"].GetValue())))
+        self.txt_fields["material_needed"].SetValue(str(path_length*3.14))
+        self.txt_fields["print_cost"].SetValue(str(path_length*0.123))
 
 class BlackcatFrame(wx.Frame):
     def __init__(self):
@@ -1656,9 +1649,16 @@ class BlackcatFrame(wx.Frame):
             self.path_canvas.Refresh()
 
             if self.cadmodel.sliced:
+                print "-------------------------------"
+                path_length = 0
+                for layer in self.cadmodel.layers:
+                    for loop in layer.loops:
+                        for line in loop:
+                            path_length += distance(line.p1.x,line.p2.x,line.p1.y,line.p2.y)
+                print "Path Length ::::::: ", path_length
                 self.left_panel.set_num_layer(len(self.cadmodel.layers))
                 self.left_panel.set_curr_layer(self.cadmodel.curr_layer + 1)
-                self.left_panel.set_print_data(self.cadmodel.path_length)
+                self.left_panel.set_print_data(path_length)
             else:
                 wx.MessageBox("no layers", "Warning")
 
