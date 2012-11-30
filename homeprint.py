@@ -1742,11 +1742,37 @@ class SlicePanel(wx.Panel):
         self.create_controls()
 
     def create_controls(self):
-        #labels = [("Layer height", "1.0", "height"), ("Pitch", "1.0", "pitch"), \
-        #          ("Scanning speed", "20", "speed"), ("Fast speed", "20", "fast")]
         labels = [("Layer height (mm)", "1.0", "height"),("Speed (m/s)","0.3","speed"), \
                     ("Starting X (mm)","0.0","global_start_x"),("Starting Y (mm)","0.0","global_start_y"),("Starting Z (mm)","0.0","global_start_z")]
         
+        outsizer = wx.BoxSizer(wx.VERTICAL)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        outsizer.Add(sizer, 0, wx.ALL, 10)
+        box = wx.FlexGridSizer(rows=3, cols=2, hgap=5, vgap=5)
+        for label, dvalue, key in labels:
+            lbl = wx.StaticText(self, label=label)
+            box.Add(lbl, 0, 0)
+            txt = wx.TextCtrl(self, -1, dvalue, size=(80, -1), validator=CharValidator(self.data, key))
+            box.Add(txt, 0, 0)
+        sizer.Add(box, 0, 0)
+
+        self.SetSizer(outsizer)
+
+class OptionsPanel(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, -1)
+        self.items = {"global_start_x":["Global Start X","mm"],
+                      "global_start_y":["Global Start Y","mm"],
+                      "global_start_z":["Global Start Z","mm"],
+                      "layer_wait":["Layer Wait Time","sec"],
+                      "path_strictness":["Path Strictness (0-1)",""],
+                      "global_start_x":["Global Start X","mm"],,
+                      "material_cost":["Material Cost","$/in^3"],
+                      "layer_height":["Layer Height","mm"],
+                      "layer_width":["Layer Width:","mm"]}
+        self.create()
+
+    def create(self):
         outsizer = wx.BoxSizer(wx.VERTICAL)
         sizer = wx.BoxSizer(wx.VERTICAL)
         outsizer.Add(sizer, 0, wx.ALL, 10)
