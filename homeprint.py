@@ -1451,19 +1451,20 @@ class BlackcatFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, "HomePrint - MIT Mediated Matter", size=(900,750))
         self.slice_parameter = {"height":"1.0", "speed":"0.3", "pitch": "1.0", "global_start_x":"0", "global_start_y":"0", "global_start_z":"0"}
-        self.options = [["General",[["global_start_x","Global Start X","mm"],
-                                   ["global_start_y","Global Start Y","mm"],
-                                   ["global_start_z","Global Start Z","mm"],
-                                   ["layer_wait","Layer Wait Time","sec"],
-                                   ["path_strictness","Path Strictness (0-1)",""],
-                                   ["material_cost","Material Cost","$/mm^3"],
-                                   ["layer_height","Layer Height","mm"],
-                                   ["layer_width","Layer Width:","mm"],
-                                   ["print_speed","Print Speed:","m/sec"],
-                                   ["slice_pitch","Slice Pitch:",""]]],
-                        ["Tool Definitions",[["tool_offset_x","Tool Offset X:","mm"],
-                                   ["tool_offset_y","Tool Offset Y:","mm"],
-                                   ["tool_offset_z","Tool Offset Z:","mm"]]]
+        self.options = [["General",[["textbox","global_start_x","Global Start X","mm"],
+                                   ["textbox","global_start_y","Global Start Y","mm"],
+                                   ["textbox","global_start_z","Global Start Z","mm"],
+                                   ["textbox","layer_wait","Layer Wait Time","sec"],
+                                   ["textbox","path_strictness","Path Strictness (0-1)",""],
+                                   ["textbox","material_cost","Material Cost","$/mm^3"],
+                                   ["textbox","layer_height","Layer Height","mm"],
+                                   ["textbox","layer_width","Layer Width:","mm"],
+                                   ["textbox","print_speed","Print Speed:","m/sec"],
+                                   ["textbox","slice_pitch","Slice Pitch:",""],
+                                   ["dropdown","units","Units:",["mm","m"] ]]],
+                        ["Tool Definitions",[["textbox","tool_offset_x","Tool Offset X:","mm"],
+                                   ["textbox","tool_offset_y","Tool Offset Y:","mm"],
+                                   ["textbox","tool_offset_z","Tool Offset Z:","mm"]]]
                        ]
         self.options_values = {"global_start_x":0,
                               "global_start_y":0,
@@ -1832,6 +1833,7 @@ class OptionsDialog(wx.Dialog):
         self.options = options
         self.default_values = default_values
         self.text_fields = {}
+        self.dropdowns = {}
 
         self.create_controls(options,default_values)
 
@@ -1842,13 +1844,20 @@ class OptionsDialog(wx.Dialog):
         outsizer.Add(sizer, 0, wx.ALL, 10)
         box = wx.FlexGridSizer(rows=len(options), cols=3, hgap=5, vgap=5)
         for option in options:
-            lbl = wx.StaticText(panel, label=option[1])
-            box.Add(lbl, 0, 0)
-            txt = wx.TextCtrl(panel, -1, str(self.default_values[option[0]]), size=(80, -1))
-            box.Add(txt, 0, 0)
             lbl = wx.StaticText(panel, label=option[2])
             box.Add(lbl, 0, 0)
-            self.text_fields[option[0]] = txt
+            if (option[0] == "textbox"):
+                txt = wx.TextCtrl(panel, -1, str(self.default_values[option[1]]), size=(80, -1))
+                box.Add(txt, 0, 0)
+                lbl = wx.StaticText(panel, label=option[3])
+                box.Add(lbl, 0, 0)
+                self.text_fields[option[1]] = txt
+            elif (option[0] == "dropdown"):
+                dd = wx.Choice(panel, -1)
+                dd.AppendItems(option[3])
+                dd.Select(n=0)
+                box.Add(dd, 0, 0)
+                self.dropdowns[option[1]] = dd
         sizer.Add(box, 0, 0)
 
         panel.SetSizer(outsizer)
@@ -1890,7 +1899,11 @@ class OptionsDialog(wx.Dialog):
         values = {}
         for tab in self.options:
             for option in tab[1]:
-                values[option[0]] = float(self.text_fields[option[0]].GetValue())
+                if option[1] in self.text_fields:
+                    values[option[1]] = float(self.text_fields[option[1]].GetValue())
+                elif option[1] in self.dropdowns:
+                    #print self.dropdowns[option[1]].GetStringSelection()
+                    values[option[1]] = self.dropdowns[option[1]].GetStringSelection()
         return values
 
 class ParaDialog(wx.Dialog):
