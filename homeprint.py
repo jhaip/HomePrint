@@ -1845,28 +1845,6 @@ class OptionsDialog(wx.Dialog):
         self.create_controls(options,default_values)
 
     def create_controls(self,options,default_values):
-        
-        '''
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        self.panel = OptionsPanel(self, options, default_values)
-        sizer.Add(self.panel, 0, 0)
-        sizer.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
-        
-        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        btn_sizer.Add((10, 10), 1)
-        ok_btn = wx.Button(self, wx.ID_OK)
-        ok_btn.SetDefault()
-        cancel_btn = wx.Button(self, wx.ID_CANCEL, "Cancel")
-        btn_sizer.Add(ok_btn)
-        btn_sizer.Add((10,10), 1)
-        btn_sizer.Add(cancel_btn)
-        btn_sizer.Add((10,10), 1)
-        sizer.Add(btn_sizer, 0, wx.EXPAND|wx.ALL, 10)
-
-        self.SetSizer(sizer)
-        self.Fit()
-        '''
-
         p = wx.Panel(self)
         nb = wx.Notebook(p,wx.ID_ANY)
         self.panel = OptionsPanel(nb, options, default_values)
@@ -1875,8 +1853,8 @@ class OptionsDialog(wx.Dialog):
         nb.AddPage(PageOne(nb),"Page 3")
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(nb,1,wx.EXPAND)
-
+        sizer.Add(nb,1,wx.EXPAND | wx.ALL)
+        
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.Add((10, 10), 1)
         ok_btn = wx.Button(p, wx.ID_OK)
@@ -1889,6 +1867,7 @@ class OptionsDialog(wx.Dialog):
         sizer.Add(btn_sizer, 0, wx.EXPAND|wx.ALL, 10)
         
         p.SetSizer(sizer)
+        self.SetSize((400,500))
 
         #import: dialogs have default size 0 which messed up tabs: recalculate
         self.ProcessEvent(wx.SizeEvent((-1,-1))) 
