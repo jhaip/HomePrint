@@ -1451,19 +1451,20 @@ class BlackcatFrame(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, "HomePrint - MIT Mediated Matter", size=(900,750))
         self.slice_parameter = {"height":"1.0", "speed":"0.3", "pitch": "1.0", "global_start_x":"0", "global_start_y":"0", "global_start_z":"0"}
-        self.options = [["global_start_x","Global Start X","mm"],
-                        ["global_start_y","Global Start Y","mm"],
-                        ["global_start_z","Global Start Z","mm"],
-                        ["layer_wait","Layer Wait Time","sec"],
-                        ["path_strictness","Path Strictness (0-1)",""],
-                        ["material_cost","Material Cost","$/mm^3"],
-                        ["layer_height","Layer Height","mm"],
-                        ["layer_width","Layer Width:","mm"],
-                        ["print_speed","Print Speed:","m/sec"],
-                        ["slice_pitch","Slice Pitch:",""],
-                        ["tool_offset_x","Tool Offset X:","mm"],
-                        ["tool_offset_y","Tool Offset Y:","mm"],
-                        ["tool_offset_z","Tool Offset Z:","mm"]]
+        self.options = [["General",[["global_start_x","Global Start X","mm"],
+                                   ["global_start_y","Global Start Y","mm"],
+                                   ["global_start_z","Global Start Z","mm"],
+                                   ["layer_wait","Layer Wait Time","sec"],
+                                   ["path_strictness","Path Strictness (0-1)",""],
+                                   ["material_cost","Material Cost","$/mm^3"],
+                                   ["layer_height","Layer Height","mm"],
+                                   ["layer_width","Layer Width:","mm"],
+                                   ["print_speed","Print Speed:","m/sec"],
+                                   ["slice_pitch","Slice Pitch:",""]]],
+                        ["Tool Definitions",[["tool_offset_x","Tool Offset X:","mm"],
+                                   ["tool_offset_y","Tool Offset Y:","mm"],
+                                   ["tool_offset_z","Tool Offset Z:","mm"]]]
+                       ]
         self.options_values = {"global_start_x":0,
                               "global_start_y":0,
                               "global_start_z":0,
@@ -1789,7 +1790,7 @@ class SlicePanel(wx.Panel):
         sizer.Add(box, 0, 0)
 
         self.SetSizer(outsizer)
-
+'''
 class OptionsPanel(wx.Panel):
     def __init__(self, parent, options, default_values):
         wx.Panel.__init__(self, parent, -1)
@@ -1820,37 +1821,49 @@ class OptionsPanel(wx.Panel):
         for option in self.options:
             values[option[0]] = float(self.text_fields[option[0]].GetValue())
         return values
-
-class PageOne(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
-        t = wx.StaticText(self, -1, "This is a PageOne object", (20,20))
-
-class PageTwo(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
-        t = wx.StaticText(self, -1, "This is a PageTwo object", (40,40))
-
-class PageThree(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
-        t = wx.StaticText(self, -1, "This is a PageThree object", (60,60))
-
+'''
 class OptionsDialog(wx.Dialog):
     def __init__(self, parent, options, default_values):
         pre = wx.PreDialog()
         #pre.SetExtraStyle(wx.WS_EX_VALIDATE_RECURSIVELY)
         pre.Create(parent, -1, "Preferences")
         self.PostCreate(pre)
+
+        self.options = options
+        self.default_values = default_values
+        self.text_fields = {}
+
         self.create_controls(options,default_values)
+
+    def create_page(self,parent,options):
+        panel = wx.Panel(parent)
+        outsizer = wx.BoxSizer(wx.VERTICAL)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        outsizer.Add(sizer, 0, wx.ALL, 10)
+        box = wx.FlexGridSizer(rows=len(options), cols=3, hgap=5, vgap=5)
+        for option in options:
+            lbl = wx.StaticText(panel, label=option[1])
+            box.Add(lbl, 0, 0)
+            txt = wx.TextCtrl(panel, -1, str(self.default_values[option[0]]), size=(80, -1))
+            box.Add(txt, 0, 0)
+            lbl = wx.StaticText(panel, label=option[2])
+            box.Add(lbl, 0, 0)
+            self.text_fields[option[0]] = txt
+        sizer.Add(box, 0, 0)
+
+        panel.SetSizer(outsizer)
+
+        return panel
 
     def create_controls(self,options,default_values):
         p = wx.Panel(self)
         nb = wx.Notebook(p,wx.ID_ANY)
-        self.panel = OptionsPanel(nb, options, default_values)
-        nb.AddPage(self.panel,"Page 1")
-        nb.AddPage(PageOne(nb),"Page 2")
-        nb.AddPage(PageOne(nb),"Page 3")
+        #self.panel = OptionsPanel(nb, options, default_values)
+        #nb.AddPage(self.panel,"Page 1")
+        #nb.AddPage(PageOne(nb),"Page 2")
+        #nb.AddPage(PageOne(nb),"Page 3")
+        for tab in self.options:
+            nb.AddPage(self.create_page(nb,tab[1]),tab[0])
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(nb,1,wx.EXPAND | wx.ALL)
@@ -1867,13 +1880,18 @@ class OptionsDialog(wx.Dialog):
         sizer.Add(btn_sizer, 0, wx.EXPAND|wx.ALL, 10)
         
         p.SetSizer(sizer)
-        self.SetSize((400,500))
+        self.SetSize((300,400))
 
         #import: dialogs have default size 0 which messed up tabs: recalculate
         self.ProcessEvent(wx.SizeEvent((-1,-1))) 
 
     def get_values(self):
-        return self.panel.get_values()
+        #return self.panel.get_values()
+        values = {}
+        for tab in self.options:
+            for option in tab[1]:
+                values[option[0]] = float(self.text_fields[option[0]].GetValue())
+        return values
 
 class ParaDialog(wx.Dialog):
     def __init__(self, parent, slice_parameter):
