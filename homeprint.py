@@ -1821,6 +1821,21 @@ class OptionsPanel(wx.Panel):
             values[option[0]] = float(self.text_fields[option[0]].GetValue())
         return values
 
+class PageOne(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+        t = wx.StaticText(self, -1, "This is a PageOne object", (20,20))
+
+class PageTwo(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+        t = wx.StaticText(self, -1, "This is a PageTwo object", (40,40))
+
+class PageThree(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+        t = wx.StaticText(self, -1, "This is a PageThree object", (60,60))
+
 class OptionsDialog(wx.Dialog):
     def __init__(self, parent, options, default_values):
         pre = wx.PreDialog()
@@ -1830,6 +1845,8 @@ class OptionsDialog(wx.Dialog):
         self.create_controls(options,default_values)
 
     def create_controls(self,options,default_values):
+        
+        '''
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.panel = OptionsPanel(self, options, default_values)
         sizer.Add(self.panel, 0, 0)
@@ -1848,6 +1865,33 @@ class OptionsDialog(wx.Dialog):
 
         self.SetSizer(sizer)
         self.Fit()
+        '''
+
+        p = wx.Panel(self)
+        nb = wx.Notebook(p,wx.ID_ANY)
+        self.panel = OptionsPanel(nb, options, default_values)
+        nb.AddPage(self.panel,"Page 1")
+        nb.AddPage(PageOne(nb),"Page 2")
+        nb.AddPage(PageOne(nb),"Page 3")
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(nb,1,wx.EXPAND)
+
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.Add((10, 10), 1)
+        ok_btn = wx.Button(p, wx.ID_OK)
+        ok_btn.SetDefault()
+        cancel_btn = wx.Button(p, wx.ID_CANCEL, "Cancel")
+        btn_sizer.Add(ok_btn)
+        btn_sizer.Add((10,10), 1)
+        btn_sizer.Add(cancel_btn)
+        btn_sizer.Add((10,10), 1)
+        sizer.Add(btn_sizer, 0, wx.EXPAND|wx.ALL, 10)
+        
+        p.SetSizer(sizer)
+
+        #import: dialogs have default size 0 which messed up tabs: recalculate
+        self.ProcessEvent(wx.SizeEvent((-1,-1))) 
 
     def get_values(self):
         return self.panel.get_values()
