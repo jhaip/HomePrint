@@ -1614,9 +1614,14 @@ class BlackcatFrame(wx.Frame):
         info.Name = "HomePrint"
         info.Version = "1.0"
         info.Copyright = "(C) 2012"
-        info.Description = "Tool used to break down a .STL model and to output code for 3D printing on a KUDA robotic arm.\nBased on Blackcat project by Zhigang Liu."
-        info.Developers = ["Jacob Haip - Mediated Matter"]
-        info.License = "GPL2"
+        info.Description = "This programs serves as an interface to break down .STL models and output code for 3D printing on a KUDA robotic arm.\n\n" \
+                            "An extension of the Blackcat project by Zhigang Liu \n\n" \
+                            "Developed by Jacob Haip\n" \
+                            "MIT Media Lab - Mediated Matter\n" \
+                            "www.media.mit.edu/research/groups/mediated-matter\n\n\n" \
+                            "License GPL2"
+        #info.Developers = ["Jacob Haip - Mediated Matter"]
+        #info.License = "GPL2"
         wx.AboutBox(info)
 
     def create_menu(self, menu_data):
