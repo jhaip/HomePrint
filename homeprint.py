@@ -815,6 +815,7 @@ class CadModel:
         self.dimension["y"] = str(self.ysize)
         self.dimension["z"] = str(self.zsize)
         self.dimension["factor"] = str(self.scale)
+        self.old_diameter = math.sqrt(float(self.dimension["x"])**2 + float(self.dimension["y"])**2 + float(self.dimension["z"])**2)
 
     def scale_model(self, factor):
         self.scale = factor
@@ -1204,12 +1205,14 @@ class ModelCanvas(glcanvas.GLCanvas):
         glEnable(GL_POINT_SMOOTH)   
 
 class DimensionPanel(wx.Panel):
-    def __init__(self, parent, cadmodel):
+    def __init__(self, parent, cadmodel, model_canvas):
         wx.Panel.__init__(self, parent)
+        self.parent = parent
         self.cadmodel = cadmodel
         self.ids = {"X":5300,"Y":5302,"Z":5303,"Factor":5304}
         self.handlers = {"X":self.OnDimXChange,"Y":self.OnDimYChange,"Z":self.OnDimZChange,"Factor":self.OnFactorChange}
         self.txt_fields = {}
+        self.model_canvas = model_canvas
         self.create_controls()
 
     def create_controls(self):
@@ -1253,6 +1256,8 @@ class DimensionPanel(wx.Panel):
         self.cadmodel.calc_dimension()
         self.cadmodel.set_new_dimension()
         self.cadmodel.create_gl_model_list()
+        self.model_canvas.setup_projection()
+        self.parent.set_grid_size()
         self.set_values(self.cadmodel.dimension)
 
     def OnDimXChange(self, event):
@@ -1341,11 +1346,12 @@ class RotatePanel(wx.Panel):
         event.Skip()
 
 class ControlPanel(wx.Panel):
-    def __init__(self, parent, cadmodel):
+    def __init__(self, parent, cadmodel, model_canvas):
         wx.Panel.__init__(self, parent, -1)
         self.cadmodel = cadmodel
         self.slice_button_id = 6060
         self.grid_size_box = None
+        self.model_canvas = model_canvas
         self.create_controls()
 
     def create_controls(self):
@@ -1356,7 +1362,7 @@ class ControlPanel(wx.Panel):
         self.SetSizer(mainsizer)
         
         # Dimension panel
-        self.dimensionPanel = DimensionPanel(self, self.cadmodel)
+        self.dimensionPanel = DimensionPanel(self, self.cadmodel, self.model_canvas)
         sizer.Add(self.dimensionPanel, 0, wx.EXPAND|wx.ALIGN_CENTER)
 
         # Rotate panel
@@ -1374,11 +1380,12 @@ class ControlPanel(wx.Panel):
         sizer.Add(box, 0, wx.EXPAND)
 
         # Grid Size
-        flex = wx.FlexGridSizer(rows=1, cols=2, hgap=2, vgap=5)
+        flex = wx.FlexGridSizer(rows=1, cols=3, hgap=2, vgap=5)
         lbl_gridsize = wx.StaticText(self, label="Grid size")
-        self.grid_size_box = wx.StaticText(self, label="")#wx.TextCtrl(self, value="", size=(80, -1), style=wx.TE_PROCESS_ENTER)
+        self.grid_size_box = wx.StaticText(self, label="", size=(50,1))#wx.TextCtrl(self, value="", size=(80, -1), style=wx.TE_PROCESS_ENTER)
         flex.Add(lbl_gridsize)
-        flex.Add(self.grid_size_box, 0, wx.EXPAND)
+        flex.Add(self.grid_size_box)
+        flex.Add(wx.StaticText(self, label="mm"))
         sizer.Add(flex, 0, wx.EXPAND)
         
         # image
@@ -1419,6 +1426,9 @@ class ControlPanel(wx.Panel):
 
     def set_dimension(self, dimension): 
         self.dimensionPanel.set_values(dimension)
+        self.set_grid_size()
+
+    def set_grid_size(self):
         self.grid_size_box.SetLabel(str(math.floor(self.cadmodel.old_diameter)))
 
     def set_rotation(self):
@@ -1533,7 +1543,7 @@ class BlackcatFrame(wx.Frame):
         self.Refresh()
 
     def create_panel(self):
-        self.left_panel  = ControlPanel(self, self.cadmodel)
+        #self.left_panel  = ControlPanel(self, self.cadmodel)
         
         self.sp = wx.SplitterWindow(self)
         self.model_panel = wx.Panel(self.sp, style=wx.SUNKEN_BORDER)
@@ -1543,6 +1553,9 @@ class BlackcatFrame(wx.Frame):
         
         # Model canvas
         self.model_canvas = ModelCanvas(self.model_panel, self.cadmodel)
+
+        self.left_panel  = ControlPanel(self, self.cadmodel, self.model_canvas)
+
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.model_canvas, 1, wx.EXPAND)
         self.model_panel.SetSizer(sizer)
