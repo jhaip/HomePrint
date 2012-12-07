@@ -1253,12 +1253,19 @@ class DimensionPanel(wx.Panel):
     def update_dimension(self,factor):
         print "Updating dimensions"
         self.cadmodel.scale_model(factor)
+        print "done scale model"
         self.cadmodel.calc_dimension()
+        print "done calc new dimension"
         self.cadmodel.set_new_dimension()
+        print "done set new dimension"
         self.cadmodel.create_gl_model_list()
+        print "done creating gl model list"
         self.model_canvas.setup_projection()
+        print "done setup projection"
         self.parent.set_grid_size()
+        print "done set grid size"
         self.set_values(self.cadmodel.dimension)
+        print "done set values"
 
     def OnDimXChange(self, event):
         v = float(self.txt_fields["x"].GetValue())
@@ -1310,7 +1317,6 @@ class RotatePanel(wx.Panel):
         for label, key in items:
             lbl_ctrl = wx.StaticText(self, label=label, size=(40,-1), style=wx.ALIGN_RIGHT)
             txt_ctrl = wx.TextCtrl(self, id=self.ids[label], value="0", size=(70, -1), style=wx.TE_PROCESS_ENTER)
-            #flex.Add(wx.Button(self, 1, '+90', size=(40,-1)))
             flex.Add(lbl_ctrl)
             flex.Add(txt_ctrl, 0, wx.EXPAND)
             flex.Add(wx.StaticText(self, label="deg", size=(50,-1)))
@@ -1488,7 +1494,8 @@ class BlackcatFrame(wx.Frame):
                               "slice_pitch":1,
                               "tool_offset_x":0,
                               "tool_offset_y":0,
-                              "tool_offset_z":0}
+                              "tool_offset_z":0,
+                              "units":"mm"}
         self.create_menubar()
         self.create_toolbar()
         self.cadmodel = CadModel()
@@ -1654,11 +1661,20 @@ class BlackcatFrame(wx.Frame):
     def OnSettings(self, event):
         dlg = OptionsDialog(self, self.options, self.options_values)
         if dlg.ShowModal() == wx.ID_OK:
+            oldunits = str(self.options_values["units"])
             self.options_values = dlg.get_values()
             print "setting options values in frame"
             if self.cadmodel.loaded:
                 self.cadmodel.set_slice_parameters(self.options_values)
-        dlg.Destroy()
+            if oldunits != self.options_values["units"]:
+                change_scale = 0.001*self.cadmodel.scale
+                print "Options Values UNITSSSSSSSSSSSSSSSSS", self.options_values["units"]
+                if self.options_values["units"] == "mm":
+                    change_scale = 1000*self.cadmodel.scale
+                self.left_panel.dimensionPanel.update_dimension(change_scale)
+                #changes cadmodel scale and dimension panel and view
+                print "done"
+        #dlg.Destroy()
 
     def OnOpen(self, event):
         wildcard = "CAD std files (*.stl)|*.stl|All files (*.*)|*.*"
@@ -1871,9 +1887,14 @@ class OptionsDialog(wx.Dialog):
                 box.Add(lbl, 0, 0)
                 self.text_fields[option[1]] = txt
             elif (option[0] == "dropdown"):
-                dd = wx.Choice(panel, -1)
-                dd.AppendItems(option[3])
+                dd = wx.Choice(panel, -1, choices=option[3])
                 dd.Select(n=0)
+                i = 0
+                for c in option[3]:
+                    if self.default_values[option[1]] == c:
+                        dd.Select(i)
+                        break
+                    i += 1
                 box.Add(dd, 0, 0)
                 self.dropdowns[option[1]] = dd
         sizer.Add(box, 0, 0)
