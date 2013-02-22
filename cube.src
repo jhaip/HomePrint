@@ -1,0 +1,236 @@
+&ACCESS RVP
+&REL 25
+DEF cube()
+
+;FOLD INI
+  ;FOLD BASISTECH INI
+    GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+    INTERRUPT ON 3
+    BAS (#INITMOV,0 )
+  ;ENDFOLD (BASISTECH INI)
+  ;FOLD USER INI
+    ;Make your modifications here
+
+  ;ENDFOLD (USER INI)
+;ENDFOLD (INI)
+
+;FOLD PTP HOME  Vel= 100 % DEFAULT;%{PE}%R 5.4.37,%MKUKATPBASIS,%CMOVE,%VPTP,%P 1:PTP, 2:HOME, 3:, 5:100, 7:DEFAULT
+$BWDSTART=FALSE
+PDAT_ACT=PDEFAULT
+FDAT_ACT=FHOME
+BAS(#PTP_PARAMS,100)
+$H_POS=XHOME
+PTP XHOME
+;ENDFOLD
+
+$VEL_AXIS[1]=20
+$VEL_AXIS[2]=20
+$VEL_AXIS[3]=20
+$VEL_AXIS[4]=20
+$VEL_AXIS[5]=20
+$VEL_AXIS[6]=20
+
+$vel.cp= 0.30
+$apo.cvel= 95
+
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 40} c_vel
+LIN {X 0, Y 1000, Z 40} c_vel
+LIN {X 1000, Y 1000, Z 40} c_vel
+LIN {X 1000, Y 0, Z 40} c_vel
+LIN {X 0, Y 0, Z 40} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 80} c_vel
+LIN {X 0, Y 1000, Z 80} c_vel
+LIN {X 1000, Y 1000, Z 80} c_vel
+LIN {X 1000, Y 0, Z 80} c_vel
+LIN {X 0, Y 0, Z 80} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 120} c_vel
+LIN {X 0, Y 1000, Z 120} c_vel
+LIN {X 1000, Y 1000, Z 120} c_vel
+LIN {X 1000, Y 0, Z 120} c_vel
+LIN {X 0, Y 0, Z 120} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 160} c_vel
+LIN {X 0, Y 1000, Z 160} c_vel
+LIN {X 1000, Y 1000, Z 160} c_vel
+LIN {X 1000, Y 0, Z 160} c_vel
+LIN {X 0, Y 0, Z 160} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 200} c_vel
+LIN {X 0, Y 1000, Z 200} c_vel
+LIN {X 1000, Y 1000, Z 200} c_vel
+LIN {X 1000, Y 0, Z 200} c_vel
+LIN {X 0, Y 0, Z 200} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 240} c_vel
+LIN {X 0, Y 1000, Z 240} c_vel
+LIN {X 1000, Y 1000, Z 240} c_vel
+LIN {X 1000, Y 0, Z 240} c_vel
+LIN {X 0, Y 0, Z 240} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 280} c_vel
+LIN {X 0, Y 1000, Z 280} c_vel
+LIN {X 1000, Y 1000, Z 280} c_vel
+LIN {X 1000, Y 0, Z 280} c_vel
+LIN {X 0, Y 0, Z 280} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 320} c_vel
+LIN {X 0, Y 1000, Z 320} c_vel
+LIN {X 1000, Y 1000, Z 320} c_vel
+LIN {X 1000, Y 0, Z 320} c_vel
+LIN {X 0, Y 0, Z 320} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 360} c_vel
+LIN {X 0, Y 1000, Z 360} c_vel
+LIN {X 1000, Y 1000, Z 360} c_vel
+LIN {X 1000, Y 0, Z 360} c_vel
+LIN {X 0, Y 0, Z 360} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 400} c_vel
+LIN {X 0, Y 1000, Z 400} c_vel
+LIN {X 1000, Y 1000, Z 400} c_vel
+LIN {X 1000, Y 0, Z 400} c_vel
+LIN {X 0, Y 0, Z 400} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 440} c_vel
+LIN {X 0, Y 1000, Z 440} c_vel
+LIN {X 1000, Y 1000, Z 440} c_vel
+LIN {X 1000, Y 0, Z 440} c_vel
+LIN {X 0, Y 0, Z 440} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 480} c_vel
+LIN {X 0, Y 1000, Z 480} c_vel
+LIN {X 1000, Y 1000, Z 480} c_vel
+LIN {X 1000, Y 0, Z 480} c_vel
+LIN {X 0, Y 0, Z 480} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 520} c_vel
+LIN {X 0, Y 1000, Z 520} c_vel
+LIN {X 1000, Y 1000, Z 520} c_vel
+LIN {X 1000, Y 0, Z 520} c_vel
+LIN {X 0, Y 0, Z 520} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 560} c_vel
+LIN {X 0, Y 1000, Z 560} c_vel
+LIN {X 1000, Y 1000, Z 560} c_vel
+LIN {X 1000, Y 0, Z 560} c_vel
+LIN {X 0, Y 0, Z 560} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 600} c_vel
+LIN {X 0, Y 1000, Z 600} c_vel
+LIN {X 1000, Y 1000, Z 600} c_vel
+LIN {X 1000, Y 0, Z 600} c_vel
+LIN {X 0, Y 0, Z 600} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 640} c_vel
+LIN {X 0, Y 1000, Z 640} c_vel
+LIN {X 1000, Y 1000, Z 640} c_vel
+LIN {X 1000, Y 0, Z 640} c_vel
+LIN {X 0, Y 0, Z 640} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 680} c_vel
+LIN {X 0, Y 1000, Z 680} c_vel
+LIN {X 1000, Y 1000, Z 680} c_vel
+LIN {X 1000, Y 0, Z 680} c_vel
+LIN {X 0, Y 0, Z 680} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 720} c_vel
+LIN {X 0, Y 1000, Z 720} c_vel
+LIN {X 1000, Y 1000, Z 720} c_vel
+LIN {X 1000, Y 0, Z 720} c_vel
+LIN {X 0, Y 0, Z 720} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 760} c_vel
+LIN {X 0, Y 1000, Z 760} c_vel
+LIN {X 1000, Y 1000, Z 760} c_vel
+LIN {X 1000, Y 0, Z 760} c_vel
+LIN {X 0, Y 0, Z 760} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 800} c_vel
+LIN {X 0, Y 1000, Z 800} c_vel
+LIN {X 1000, Y 1000, Z 800} c_vel
+LIN {X 1000, Y 0, Z 800} c_vel
+LIN {X 0, Y 0, Z 800} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 840} c_vel
+LIN {X 0, Y 1000, Z 840} c_vel
+LIN {X 1000, Y 1000, Z 840} c_vel
+LIN {X 1000, Y 0, Z 840} c_vel
+LIN {X 0, Y 0, Z 840} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 880} c_vel
+LIN {X 0, Y 1000, Z 880} c_vel
+LIN {X 1000, Y 1000, Z 880} c_vel
+LIN {X 1000, Y 0, Z 880} c_vel
+LIN {X 0, Y 0, Z 880} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 920} c_vel
+LIN {X 0, Y 1000, Z 920} c_vel
+LIN {X 1000, Y 1000, Z 920} c_vel
+LIN {X 1000, Y 0, Z 920} c_vel
+LIN {X 0, Y 0, Z 920} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 960} c_vel
+LIN {X 0, Y 1000, Z 960} c_vel
+LIN {X 1000, Y 1000, Z 960} c_vel
+LIN {X 1000, Y 0, Z 960} c_vel
+LIN {X 0, Y 0, Z 960} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+OUT[4] = TRUE
+LIN {X 0, Y 0, Z 999} c_vel
+LIN {X 0, Y 1000, Z 999} c_vel
+LIN {X 1000, Y 1000, Z 999} c_vel
+LIN {X 1000, Y 0, Z 999} c_vel
+LIN {X 0, Y 0, Z 999} c_vel
+OUT[4] = FALSE
+WAIT SEC 30.0
+END

@@ -497,7 +497,9 @@ class Layer:
     def writeloop(self, f, global_start):
         count = 1
         for loop in self.loops:
-            print >> f, 'OUT[4] = TRUE'
+            line1 = loop[0]
+            print >> f, 'LIN {X '+str(int(global_start.x+line1.p1.x))+', Y '+str(int(global_start.y+line1.p1.y))+', Z '+str(int(global_start.z+line1.p1.z))+'} c_vel'
+            print >> f, '$OUT[4] = TRUE'
             lastline = None
             for line in loop:
                 if lastline != None:
@@ -510,7 +512,7 @@ class Layer:
                 #writeline(line, f)
                 lastline = line
             count += 1
-            print >> f, 'OUT[4] = FALSE'
+            print >> f, '$OUT[4] = FALSE'
 
     def writechunks(self, f):
         print >> f, '<chunks num="', len(self.chunks), '">'
@@ -760,6 +762,10 @@ class CadModel:
         print >> f, ''
         print >> f, '$vel.cp=', "%.2f" % self.slice_para["print_speed"]
         print >> f, '$apo.cvel=', int(self.slice_para["path_strictness"])
+        print >> f, ''
+        print >> f, 'PTP {A1 0, A2 -90, A3 90, A4 0, A5 0, A6 0}'
+        print >> f, ''
+        print >> f, 'PTP {Z 450, S 110}'
         print >> f, ''
 
         np = Point()
@@ -1485,7 +1491,7 @@ class BlackcatFrame(wx.Frame):
         self.options_values = {"global_start_x":0,
                               "global_start_y":0,
                               "global_start_z":0,
-                              "layer_wait":30,
+                              "layer_wait":10,
                               "path_strictness":95,
                               "material_cost":0.23,
                               "layer_height":1.0,

@@ -1,0 +1,335 @@
+&ACCESS RVP
+&REL 25
+DEF wall_test1()
+
+;FOLD INI
+  ;FOLD BASISTECH INI
+    GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+    INTERRUPT ON 3
+    BAS (#INITMOV,0 )
+  ;ENDFOLD (BASISTECH INI)
+  ;FOLD USER INI
+    ;Make your modifications here
+
+  ;ENDFOLD (USER INI)
+;ENDFOLD (INI)
+
+;FOLD PTP HOME  Vel= 100 % DEFAULT;%{PE}%R 5.4.37,%MKUKATPBASIS,%CMOVE,%VPTP,%P 1:PTP, 2:HOME, 3:, 5:100, 7:DEFAULT
+$BWDSTART=FALSE
+PDAT_ACT=PDEFAULT
+FDAT_ACT=FHOME
+BAS(#PTP_PARAMS,100)
+$H_POS=XHOME
+PTP XHOME
+;ENDFOLD
+
+$VEL_AXIS[1]=20
+$VEL_AXIS[2]=20
+$VEL_AXIS[3]=20
+$VEL_AXIS[4]=20
+$VEL_AXIS[5]=20
+$VEL_AXIS[6]=20
+
+$vel.cp= 0.30
+$apo.cvel= 95
+
+PTP {A1 0, A2 -90, A3 90, A4 0, A5 0, A6 0}
+
+PTP {Z 450, S 110}
+
+$OUT[4] = TRUE
+LIN {X 544, Y -419, Z 395} c_vel
+LIN {X 569, Y -442, Z 395} c_vel
+LIN {X 597, Y -464, Z 395} c_vel
+LIN {X 624, Y -482, Z 395} c_vel
+LIN {X 651, Y -496, Z 395} c_vel
+LIN {X 676, Y -507, Z 395} c_vel
+LIN {X 702, Y -514, Z 395} c_vel
+LIN {X 728, Y -519, Z 395} c_vel
+LIN {X 743, Y -520, Z 395} c_vel
+LIN {X 770, Y -521, Z 395} c_vel
+LIN {X 797, Y -518, Z 395} c_vel
+LIN {X 826, Y -513, Z 395} c_vel
+LIN {X 859, Y -504, Z 395} c_vel
+LIN {X 896, Y -492, Z 395} c_vel
+LIN {X 943, Y -473, Z 395} c_vel
+LIN {X 1011, Y -444, Z 395} c_vel
+LIN {X 1075, Y -416, Z 395} c_vel
+LIN {X 1118, Y -400, Z 395} c_vel
+LIN {X 1158, Y -387, Z 395} c_vel
+LIN {X 1196, Y -377, Z 395} c_vel
+LIN {X 1232, Y -369, Z 395} c_vel
+LIN {X 1267, Y -364, Z 395} c_vel
+LIN {X 1301, Y -362, Z 395} c_vel
+LIN {X 1335, Y -362, Z 395} c_vel
+LIN {X 1369, Y -365, Z 395} c_vel
+LIN {X 1403, Y -371, Z 395} c_vel
+LIN {X 1438, Y -379, Z 395} c_vel
+LIN {X 1395, Y -527, Z 395} c_vel
+LIN {X 1384, Y -524, Z 395} c_vel
+LIN {X 1355, Y -519, Z 395} c_vel
+LIN {X 1326, Y -516, Z 395} c_vel
+LIN {X 1296, Y -517, Z 395} c_vel
+LIN {X 1267, Y -520, Z 395} c_vel
+LIN {X 1236, Y -526, Z 395} c_vel
+LIN {X 1202, Y -535, Z 395} c_vel
+LIN {X 1164, Y -548, Z 395} c_vel
+LIN {X 1110, Y -569, Z 395} c_vel
+LIN {X 1014, Y -611, Z 395} c_vel
+LIN {X 974, Y -627, Z 395} c_vel
+LIN {X 933, Y -642, Z 395} c_vel
+LIN {X 895, Y -654, Z 395} c_vel
+LIN {X 859, Y -663, Z 395} c_vel
+LIN {X 825, Y -670, Z 395} c_vel
+LIN {X 792, Y -674, Z 395} c_vel
+LIN {X 759, Y -675, Z 395} c_vel
+LIN {X 727, Y -674, Z 395} c_vel
+LIN {X 697, Y -671, Z 395} c_vel
+LIN {X 665, Y -664, Z 395} c_vel
+LIN {X 633, Y -655, Z 395} c_vel
+LIN {X 601, Y -643, Z 395} c_vel
+LIN {X 569, Y -628, Z 395} c_vel
+LIN {X 537, Y -609, Z 395} c_vel
+LIN {X 504, Y -587, Z 395} c_vel
+LIN {X 471, Y -561, Z 395} c_vel
+LIN {X 438, Y -531, Z 395} c_vel
+LIN {X 544, Y -419, Z 395} c_vel
+$OUT[4] = FALSE
+WAIT SEC 10.0
+$OUT[4] = TRUE
+LIN {X 544, Y -419, Z 435} c_vel
+LIN {X 569, Y -442, Z 435} c_vel
+LIN {X 597, Y -464, Z 435} c_vel
+LIN {X 624, Y -482, Z 435} c_vel
+LIN {X 651, Y -496, Z 435} c_vel
+LIN {X 676, Y -507, Z 435} c_vel
+LIN {X 702, Y -514, Z 435} c_vel
+LIN {X 728, Y -519, Z 435} c_vel
+LIN {X 743, Y -520, Z 435} c_vel
+LIN {X 770, Y -521, Z 435} c_vel
+LIN {X 797, Y -518, Z 435} c_vel
+LIN {X 826, Y -513, Z 435} c_vel
+LIN {X 859, Y -504, Z 435} c_vel
+LIN {X 896, Y -492, Z 435} c_vel
+LIN {X 943, Y -473, Z 435} c_vel
+LIN {X 1011, Y -444, Z 435} c_vel
+LIN {X 1075, Y -416, Z 435} c_vel
+LIN {X 1118, Y -400, Z 435} c_vel
+LIN {X 1158, Y -387, Z 435} c_vel
+LIN {X 1196, Y -377, Z 435} c_vel
+LIN {X 1232, Y -369, Z 435} c_vel
+LIN {X 1267, Y -364, Z 435} c_vel
+LIN {X 1301, Y -362, Z 435} c_vel
+LIN {X 1335, Y -362, Z 435} c_vel
+LIN {X 1369, Y -365, Z 435} c_vel
+LIN {X 1403, Y -371, Z 435} c_vel
+LIN {X 1438, Y -379, Z 435} c_vel
+LIN {X 1395, Y -527, Z 435} c_vel
+LIN {X 1384, Y -524, Z 435} c_vel
+LIN {X 1355, Y -519, Z 435} c_vel
+LIN {X 1326, Y -516, Z 435} c_vel
+LIN {X 1296, Y -517, Z 435} c_vel
+LIN {X 1267, Y -520, Z 435} c_vel
+LIN {X 1236, Y -526, Z 435} c_vel
+LIN {X 1202, Y -535, Z 435} c_vel
+LIN {X 1164, Y -548, Z 435} c_vel
+LIN {X 1110, Y -569, Z 435} c_vel
+LIN {X 1014, Y -611, Z 435} c_vel
+LIN {X 974, Y -627, Z 435} c_vel
+LIN {X 933, Y -642, Z 435} c_vel
+LIN {X 895, Y -654, Z 435} c_vel
+LIN {X 859, Y -663, Z 435} c_vel
+LIN {X 825, Y -670, Z 435} c_vel
+LIN {X 792, Y -674, Z 435} c_vel
+LIN {X 759, Y -675, Z 435} c_vel
+LIN {X 727, Y -674, Z 435} c_vel
+LIN {X 697, Y -671, Z 435} c_vel
+LIN {X 665, Y -664, Z 435} c_vel
+LIN {X 633, Y -655, Z 435} c_vel
+LIN {X 601, Y -643, Z 435} c_vel
+LIN {X 569, Y -628, Z 435} c_vel
+LIN {X 537, Y -609, Z 435} c_vel
+LIN {X 504, Y -587, Z 435} c_vel
+LIN {X 471, Y -561, Z 435} c_vel
+LIN {X 438, Y -531, Z 435} c_vel
+LIN {X 544, Y -419, Z 435} c_vel
+$OUT[4] = FALSE
+WAIT SEC 10.0
+$OUT[4] = TRUE
+LIN {X 544, Y -419, Z 475} c_vel
+LIN {X 569, Y -442, Z 475} c_vel
+LIN {X 597, Y -464, Z 475} c_vel
+LIN {X 624, Y -482, Z 475} c_vel
+LIN {X 651, Y -496, Z 475} c_vel
+LIN {X 676, Y -507, Z 475} c_vel
+LIN {X 702, Y -514, Z 475} c_vel
+LIN {X 728, Y -519, Z 475} c_vel
+LIN {X 743, Y -520, Z 475} c_vel
+LIN {X 770, Y -521, Z 475} c_vel
+LIN {X 797, Y -518, Z 475} c_vel
+LIN {X 826, Y -513, Z 475} c_vel
+LIN {X 859, Y -504, Z 475} c_vel
+LIN {X 896, Y -492, Z 475} c_vel
+LIN {X 943, Y -473, Z 475} c_vel
+LIN {X 1011, Y -444, Z 475} c_vel
+LIN {X 1075, Y -416, Z 475} c_vel
+LIN {X 1118, Y -400, Z 475} c_vel
+LIN {X 1158, Y -387, Z 475} c_vel
+LIN {X 1196, Y -377, Z 475} c_vel
+LIN {X 1232, Y -369, Z 475} c_vel
+LIN {X 1267, Y -364, Z 475} c_vel
+LIN {X 1301, Y -362, Z 475} c_vel
+LIN {X 1335, Y -362, Z 475} c_vel
+LIN {X 1369, Y -365, Z 475} c_vel
+LIN {X 1403, Y -371, Z 475} c_vel
+LIN {X 1438, Y -379, Z 475} c_vel
+LIN {X 1395, Y -527, Z 475} c_vel
+LIN {X 1384, Y -524, Z 475} c_vel
+LIN {X 1355, Y -519, Z 475} c_vel
+LIN {X 1326, Y -516, Z 475} c_vel
+LIN {X 1296, Y -517, Z 475} c_vel
+LIN {X 1267, Y -520, Z 475} c_vel
+LIN {X 1236, Y -526, Z 475} c_vel
+LIN {X 1202, Y -535, Z 475} c_vel
+LIN {X 1164, Y -548, Z 475} c_vel
+LIN {X 1110, Y -569, Z 475} c_vel
+LIN {X 1014, Y -611, Z 475} c_vel
+LIN {X 974, Y -627, Z 475} c_vel
+LIN {X 933, Y -642, Z 475} c_vel
+LIN {X 895, Y -654, Z 475} c_vel
+LIN {X 859, Y -663, Z 475} c_vel
+LIN {X 825, Y -670, Z 475} c_vel
+LIN {X 792, Y -674, Z 475} c_vel
+LIN {X 759, Y -675, Z 475} c_vel
+LIN {X 727, Y -674, Z 475} c_vel
+LIN {X 697, Y -671, Z 475} c_vel
+LIN {X 665, Y -664, Z 475} c_vel
+LIN {X 633, Y -655, Z 475} c_vel
+LIN {X 601, Y -643, Z 475} c_vel
+LIN {X 569, Y -628, Z 475} c_vel
+LIN {X 537, Y -609, Z 475} c_vel
+LIN {X 504, Y -587, Z 475} c_vel
+LIN {X 471, Y -561, Z 475} c_vel
+LIN {X 438, Y -531, Z 475} c_vel
+LIN {X 544, Y -419, Z 475} c_vel
+$OUT[4] = FALSE
+WAIT SEC 10.0
+$OUT[4] = TRUE
+LIN {X 544, Y -419, Z 515} c_vel
+LIN {X 569, Y -442, Z 515} c_vel
+LIN {X 597, Y -464, Z 515} c_vel
+LIN {X 624, Y -482, Z 515} c_vel
+LIN {X 651, Y -496, Z 515} c_vel
+LIN {X 676, Y -507, Z 515} c_vel
+LIN {X 702, Y -514, Z 515} c_vel
+LIN {X 728, Y -519, Z 515} c_vel
+LIN {X 743, Y -520, Z 515} c_vel
+LIN {X 770, Y -521, Z 515} c_vel
+LIN {X 797, Y -518, Z 515} c_vel
+LIN {X 826, Y -513, Z 515} c_vel
+LIN {X 859, Y -504, Z 515} c_vel
+LIN {X 896, Y -492, Z 515} c_vel
+LIN {X 943, Y -473, Z 515} c_vel
+LIN {X 1011, Y -444, Z 515} c_vel
+LIN {X 1075, Y -416, Z 515} c_vel
+LIN {X 1118, Y -400, Z 515} c_vel
+LIN {X 1158, Y -387, Z 515} c_vel
+LIN {X 1196, Y -377, Z 515} c_vel
+LIN {X 1232, Y -369, Z 515} c_vel
+LIN {X 1267, Y -364, Z 515} c_vel
+LIN {X 1301, Y -362, Z 515} c_vel
+LIN {X 1335, Y -362, Z 515} c_vel
+LIN {X 1369, Y -365, Z 515} c_vel
+LIN {X 1403, Y -371, Z 515} c_vel
+LIN {X 1438, Y -379, Z 515} c_vel
+LIN {X 1395, Y -527, Z 515} c_vel
+LIN {X 1384, Y -524, Z 515} c_vel
+LIN {X 1355, Y -519, Z 515} c_vel
+LIN {X 1326, Y -516, Z 515} c_vel
+LIN {X 1296, Y -517, Z 515} c_vel
+LIN {X 1267, Y -520, Z 515} c_vel
+LIN {X 1236, Y -526, Z 515} c_vel
+LIN {X 1202, Y -535, Z 515} c_vel
+LIN {X 1164, Y -548, Z 515} c_vel
+LIN {X 1110, Y -569, Z 515} c_vel
+LIN {X 1014, Y -611, Z 515} c_vel
+LIN {X 974, Y -627, Z 515} c_vel
+LIN {X 933, Y -642, Z 515} c_vel
+LIN {X 895, Y -654, Z 515} c_vel
+LIN {X 859, Y -663, Z 515} c_vel
+LIN {X 825, Y -670, Z 515} c_vel
+LIN {X 792, Y -674, Z 515} c_vel
+LIN {X 759, Y -675, Z 515} c_vel
+LIN {X 727, Y -674, Z 515} c_vel
+LIN {X 697, Y -671, Z 515} c_vel
+LIN {X 665, Y -664, Z 515} c_vel
+LIN {X 633, Y -655, Z 515} c_vel
+LIN {X 601, Y -643, Z 515} c_vel
+LIN {X 569, Y -628, Z 515} c_vel
+LIN {X 537, Y -609, Z 515} c_vel
+LIN {X 504, Y -587, Z 515} c_vel
+LIN {X 471, Y -561, Z 515} c_vel
+LIN {X 438, Y -531, Z 515} c_vel
+LIN {X 544, Y -419, Z 515} c_vel
+$OUT[4] = FALSE
+WAIT SEC 10.0
+$OUT[4] = TRUE
+LIN {X 544, Y -419, Z 555} c_vel
+LIN {X 569, Y -442, Z 555} c_vel
+LIN {X 597, Y -464, Z 555} c_vel
+LIN {X 624, Y -482, Z 555} c_vel
+LIN {X 651, Y -496, Z 555} c_vel
+LIN {X 676, Y -507, Z 555} c_vel
+LIN {X 702, Y -514, Z 555} c_vel
+LIN {X 728, Y -519, Z 555} c_vel
+LIN {X 743, Y -520, Z 555} c_vel
+LIN {X 770, Y -521, Z 555} c_vel
+LIN {X 797, Y -518, Z 555} c_vel
+LIN {X 826, Y -513, Z 555} c_vel
+LIN {X 859, Y -504, Z 555} c_vel
+LIN {X 896, Y -492, Z 555} c_vel
+LIN {X 943, Y -473, Z 555} c_vel
+LIN {X 1011, Y -444, Z 555} c_vel
+LIN {X 1075, Y -416, Z 555} c_vel
+LIN {X 1118, Y -400, Z 555} c_vel
+LIN {X 1158, Y -387, Z 555} c_vel
+LIN {X 1196, Y -377, Z 555} c_vel
+LIN {X 1232, Y -369, Z 555} c_vel
+LIN {X 1267, Y -364, Z 555} c_vel
+LIN {X 1301, Y -362, Z 555} c_vel
+LIN {X 1335, Y -362, Z 555} c_vel
+LIN {X 1369, Y -365, Z 555} c_vel
+LIN {X 1403, Y -371, Z 555} c_vel
+LIN {X 1438, Y -379, Z 555} c_vel
+LIN {X 1395, Y -527, Z 555} c_vel
+LIN {X 1384, Y -524, Z 555} c_vel
+LIN {X 1355, Y -519, Z 555} c_vel
+LIN {X 1326, Y -516, Z 555} c_vel
+LIN {X 1296, Y -517, Z 555} c_vel
+LIN {X 1267, Y -520, Z 555} c_vel
+LIN {X 1236, Y -526, Z 555} c_vel
+LIN {X 1202, Y -535, Z 555} c_vel
+LIN {X 1164, Y -548, Z 555} c_vel
+LIN {X 1110, Y -569, Z 555} c_vel
+LIN {X 1014, Y -611, Z 555} c_vel
+LIN {X 974, Y -627, Z 555} c_vel
+LIN {X 933, Y -642, Z 555} c_vel
+LIN {X 895, Y -654, Z 555} c_vel
+LIN {X 859, Y -663, Z 555} c_vel
+LIN {X 825, Y -670, Z 555} c_vel
+LIN {X 792, Y -674, Z 555} c_vel
+LIN {X 759, Y -675, Z 555} c_vel
+LIN {X 727, Y -674, Z 555} c_vel
+LIN {X 697, Y -671, Z 555} c_vel
+LIN {X 665, Y -664, Z 555} c_vel
+LIN {X 633, Y -655, Z 555} c_vel
+LIN {X 601, Y -643, Z 555} c_vel
+LIN {X 569, Y -628, Z 555} c_vel
+LIN {X 537, Y -609, Z 555} c_vel
+LIN {X 504, Y -587, Z 555} c_vel
+LIN {X 471, Y -561, Z 555} c_vel
+LIN {X 438, Y -531, Z 555} c_vel
+LIN {X 544, Y -419, Z 555} c_vel
+$OUT[4] = FALSE
+WAIT SEC 10.0
+END
